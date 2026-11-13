@@ -1,4 +1,4 @@
-<Window x:Class="Nutriora.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Nutriora — Nutrition &amp; Fitness" Width="1160" Height="790" MinWidth="850" MinHeight="600" Background="#F8F5EE" WindowStartupLocation="CenterScreen" KeyDown="Window_KeyDown">
+<Window x:Class="Nutriora.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Nutriora — Nutrition &amp; Fitness" Width="1160" Height="790" MinWidth="850" MinHeight="600" Background="{DynamicResource BackgroundBrush}" WindowStartupLocation="CenterScreen" KeyDown="Window_KeyDown">
 <Grid>
 <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 <Border Background="#173D35" CornerRadius="0,18,18,0">
@@ -6,14 +6,14 @@
 <TextBlock Text="✦" FontSize="30" Foreground="#C9E7D5" HorizontalAlignment="Center" Margin="0,0,0,35"/>
 <Button Content="⌂" FontSize="23" ToolTip="Dashboard" Click="Dashboard_Click"/>
 <Button Content="☷" FontSize="23" ToolTip="Ημερολόγιο" Click="Diary_Click" Margin="0,14,0,0"/>
-<Button Content="◉" FontSize="23" ToolTip="Προφίλ και στόχοι" Click="Profiles_Click" Margin="0,14,0,0"/>
+<Button Content="◉" FontSize="23" ToolTip="Προφίλ και στόχοι" Click="Profiles_Click" Margin="0,14,0,0"/><Button Content="⚖" FontSize="23" ToolTip="Βάρος" Click="Weight_Click" Margin="0,14,0,0"/><Button Content="☼" FontSize="23" ToolTip="Εναλλαγή θέματος" Click="Theme_Click" Margin="0,14,0,0"/>
 </StackPanel>
 </Border>
 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
 <StackPanel Margin="32,24">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="29" FontWeight="SemiBold" Foreground="#173D35"/>
-<TextBlock Text="Nutriora · alpha.2" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · alpha.3" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
 <TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="#173D35" Margin="0,0,10,0"/>
@@ -30,7 +30,8 @@
 <TextBlock x:Name="MacroText" Foreground="#355C4D"/>
 </StackPanel>
 </Border>
-<Border Background="White" CornerRadius="18" Padding="24">
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="24" Margin="0,0,0,16"><StackPanel><TextBlock Text="Νερό σήμερα" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="WaterText" FontSize="24" Foreground="{DynamicResource InkBrush}" Margin="0,10,0,10"/><StackPanel Orientation="Horizontal"><Button Content="+ 250 ml" Click="Water250_Click"/><Button Content="+ 500 ml" Click="Water500_Click"/><Button Content="− 250 ml" Click="WaterMinus_Click"/></StackPanel></StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="24">
 <StackPanel>
 <TextBlock Text="Σημερινά γεύματα" FontSize="21" FontWeight="SemiBold" Foreground="#173D35" Margin="0,0,0,12"/>
 <TextBlock x:Name="SummaryText" TextWrapping="Wrap" Foreground="#60786F"/>
@@ -46,14 +47,14 @@
 <ComboBox x:Name="MealPicker" Margin="0,5,0,14" SelectedIndex="0">
 <ComboBoxItem Content="Πρωινό"/><ComboBoxItem Content="Δεκατιανό"/><ComboBoxItem Content="Μεσημεριανό"/><ComboBoxItem Content="Απογευματινό"/><ComboBoxItem Content="Βραδινό"/>
 </ComboBox>
-<TextBlock Text="Τρόφιμο" Foreground="#60786F"/>
+<TextBlock Text="Αναζήτηση τροφίμου" Foreground="#60786F"/><TextBox x:Name="FoodSearch" TextChanged="FoodSearch_Changed" Margin="0,5,0,10"/><TextBlock Text="Τρόφιμο" Foreground="#60786F"/>
 <ComboBox x:Name="FoodPicker" DisplayMemberPath="Name" Margin="0,5,0,14"/>
 <TextBlock Text="Ποσότητα (γραμμάρια)" Foreground="#60786F"/>
 <TextBox x:Name="GramsInput" Text="100" Margin="0,5,0,14"/>
-<Button Content="Καταχώριση" Width="145" HorizontalAlignment="Left" Click="SaveEntry_Click"/>
+<StackPanel Orientation="Horizontal"><Button Content="Καταχώριση" Width="145" Click="SaveEntry_Click"/><Button Content="Ενημέρωση επιλεγμένου" Click="UpdateEntry_Click"/><Button Content="Αντιγραφή από χθες" Click="CopyYesterday_Click"/></StackPanel>
 <TextBlock Text="Καταχωρίσεις επιλεγμένης ημέρας" FontSize="19" FontWeight="SemiBold" Foreground="#173D35" Margin="0,24,0,10"/>
 <ListBox x:Name="EntriesList" Height="230" DisplayMemberPath="Food"/>
-<Button Content="Διαγραφή επιλεγμένης καταχώρισης" HorizontalAlignment="Left" Margin="0,10,0,0" Click="DeleteEntry_Click"/>
+<Button Content="Διαγραφή επιλεγμένης καταχώρισης" HorizontalAlignment="Left" Margin="0,10,0,0" Click="DeleteEntry_Click"/><TextBlock Text="Προσθήκη προσωπικού τροφίμου (ανά 100 g)" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,22,0,8"/><TextBox x:Name="CustomFoodName" Margin="0,0,0,8"/><UniformGrid Columns="4"><TextBox x:Name="CustomKcal" ToolTip="Θερμίδες" Text="0"/><TextBox x:Name="CustomProtein" ToolTip="Πρωτεΐνη" Text="0"/><TextBox x:Name="CustomCarbs" ToolTip="Υδατάνθρακες" Text="0"/><TextBox x:Name="CustomFat" ToolTip="Λίπος" Text="0"/></UniformGrid><TextBlock Text="Πεδία: θερμίδες · πρωτεΐνη · υδατάνθρακες · λίπος" Foreground="#60786F" Margin="0,8,0,8"/><Button Content="+ Αποθήκευση τροφίμου" HorizontalAlignment="Left" Click="AddFood_Click"/>
 </StackPanel>
 </Border>
 </StackPanel>
@@ -63,13 +64,14 @@
 <TextBlock Text="Νέο προφίλ" FontSize="20" FontWeight="SemiBold" Foreground="#173D35"/>
 <TextBox x:Name="NewProfileName" Margin="0,12,0,12" MaxLength="60"/>
 <Button Content="Δημιουργία προφίλ" HorizontalAlignment="Left" Click="AddProfile_Click"/>
-<TextBlock Text="Ημερήσιος στόχος θερμίδων" FontSize="20" FontWeight="SemiBold" Foreground="#173D35" Margin="0,25,0,8"/>
+<TextBlock Text="Μετονομασία επιλεγμένου προφίλ" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,22,0,8"/><TextBox x:Name="RenameInput" Margin="0,0,0,8"/><Button Content="Αποθήκευση ονόματος" HorizontalAlignment="Left" Click="Rename_Click"/><TextBlock Text="Ημερήσιος στόχος θερμίδων" FontSize="20" FontWeight="SemiBold" Foreground="#173D35" Margin="0,25,0,8"/>
 <TextBox x:Name="GoalInput" Margin="0,0,0,12"/>
 <Button Content="Αποθήκευση στόχου" HorizontalAlignment="Left" Click="SaveGoal_Click"/>
 <TextBlock Text="Οι θερμιδικοί στόχοι ορίζονται χειροκίνητα στην παρούσα έκδοση." Foreground="#60786F" Margin="0,18,0,0" TextWrapping="Wrap"/>
 </StackPanel>
 </Border>
 </StackPanel>
+<StackPanel x:Name="WeightPanel" Visibility="Collapsed"><Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="24"><StackPanel><TextBlock Text="Καταγραφή βάρους (kg)" FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBox x:Name="WeightInput" Margin="0,12,0,12"/><Button Content="Αποθήκευση βάρους" HorizontalAlignment="Left" Click="SaveWeight_Click"/><TextBlock Text="Πρόσφατες μετρήσεις" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,20,0,10"/><ListBox x:Name="WeightsList" Height="250"/></StackPanel></Border></StackPanel>
 </StackPanel>
 </ScrollViewer>
 </Grid>
