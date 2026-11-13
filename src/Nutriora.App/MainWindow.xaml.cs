@@ -4,6 +4,8 @@ using Microsoft.Data.Sqlite;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace Nutriora;
 public partial class MainWindow : Window
@@ -37,6 +39,16 @@ public partial class MainWindow : Window
         WeightsList.ItemsSource = _store.Weights(p.Id).Select(w => $"{w.Day}  ·  {w.Kg:0.#} kg").ToList();
         var entries = _store.Entries(p.Id, Day);
         var total = entries.Sum(e => e.Calories);
+        BudgetPercentText.Text = $"{(p.Goal > 0 ? total / p.Goal * 100 : 0):0}%";
+        BudgetProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100,0,100) : 0;
+        BudgetRemainingText.Text = $"Απομένουν {p.Goal-total:0} kcal";
+        CarbValue.Text = $"{entries.Sum(e=>e.Carbs):0.#} g";
+        ProteinValue.Text = $"{entries.Sum(e=>e.Protein):0.#} g";
+        FatValue.Text = $"{entries.Sum(e=>e.Fat):0.#} g";
+        BreakfastCalories.Text = $"{entries.Where(e=>e.Meal == "Πρωινό").Sum(e=>e.Calories):0} kcal";
+        LunchCalories.Text = $"{entries.Where(e=>e.Meal == "Μεσημεριανό").Sum(e=>e.Calories):0} kcal";
+        DinnerCalories.Text = $"{entries.Where(e=>e.Meal == "Βραδινό").Sum(e=>e.Calories):0} kcal";
+        RenderWeightChart(p.Id);
         CaloriesText.Text = entries.Count == 0 ? $"Δεν υπάρχουν καταχωρίσεις · στόχος {p.Goal:0} kcal" : $"{total:0} / {p.Goal:0} kcal · υπόλοιπο {p.Goal-total:+0;-0;0}";
         CaloriesProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100, 0, 100) : 0;
         MacroText.Text = entries.Count == 0 ? "Μακροθρεπτικά: χωρίς καταγραφή" : $"Πρωτεΐνη {entries.Sum(e=>e.Protein):0.#} g · Υδατάνθρακες {entries.Sum(e=>e.Carbs):0.#} g · Λίπος {entries.Sum(e=>e.Fat):0.#} g";
@@ -168,5 +180,38 @@ public partial class MainWindow : Window
         resources["PanelBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#23382F" : "#FFFFFF"));
         resources["InkBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#E5F2E8" : "#173D35"));
         resources["MutedBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#B6CFC0" : "#60786F"));
+    }
+
+    private void WeightChart_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (!_initializing && Current is { } p) RenderWeightChart(p.Id);
+    }
+    private void RenderWeightChart(long profileId)
+    {
+        if (WeightChart == null || LatestWeightText == null) return;
+        var measurements = _store.Weights(profileId).OrderBy(w => w.Day).ToList();
+        LatestWeightText.Text = measurements.Count == 0 ? "— kg" : $"{measurements[^1].Kg:0.#} kg";
+        WeightDeltaText.Text = measurements.Count < 2 ? "Πρόσθεσε μετρήσεις για να δεις την εξέλιξη" :
+            $"{measurements[^1].Kg - measurements[0].Kg:+0.#;-0.#;0} kg από την πρώτη μέτρηση";
+        WeightChart.Children.Clear();
+        if (measurements.Count == 0) return;
+        double width = Math.Max(300, WeightChart.ActualWidth);
+        double height = Math.Max(120, WeightChart.ActualHeight);
+        double min = measurements.Min(w => w.Kg) - 1;
+        double max = measurements.Max(w => w.Kg) + 1;
+        var points = new PointCollection();
+        for (int i = 0; i < measurements.Count; i++)
+        {
+            double x = 20 + (width-40) * (measurements.Count == 1 ? 0.5 : (double)i/(measurements.Count-1));
+            double y = 20 + (height-40) * (1-(measurements[i].Kg-min)/(max-min));
+            points.Add(new Point(x,y));
+        }
+        var line = new Polyline { Points=points, Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=3, StrokeLineJoin=PenLineJoin.Round };
+        WeightChart.Children.Add(line);
+        foreach(var point in points)
+        {
+            var dot = new Ellipse { Width=10, Height=10, Fill=new SolidColorBrush(Color.FromRgb(235,250,244)), Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=2 };
+            Canvas.SetLeft(dot,point.X-5); Canvas.SetTop(dot,point.Y-5); WeightChart.Children.Add(dot);
+        }
     }
 }
