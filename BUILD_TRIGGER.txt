@@ -1,2 +1,2 @@
-Nutriora v0.1.0-alpha.4
-UI redesign based on user supplied reference screenshots.
+Nutriora v0.1.0-alpha.5
+Compact responsive dashboard with radial calorie indicator and weight range filtering.
