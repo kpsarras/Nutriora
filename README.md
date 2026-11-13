@@ -9,7 +9,7 @@ Nutrition & Fitness desktop app for Windows.
 Requires .NET 10 SDK on Windows.
 
 ```powershell
-dotnet run --project Nutriora.App/Nutriora.App.csproj
+dotnet run --project src/Nutriora.App/Nutriora.App.csproj
 ```
 
 The Windows build workflow compiles and publishes a Windows x64 artifact. This is not yet an installer.
