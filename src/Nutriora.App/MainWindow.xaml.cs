@@ -59,7 +59,7 @@ public partial class MainWindow : Window
         EntriesList.ItemsSource = entries.Select(e=>new DiaryRow(e.Id,$"{e.Meal} · {e.Food} · {e.Grams:0.#} g · {e.Calories:0.#} kcal")).ToList();
     }
     private sealed record DiaryRow(long Id, string Food);
-    private void Show(StackPanel panel, string title)
+    private void Show(UIElement panel, string title)
     {
         DashboardPanel.Visibility = panel == DashboardPanel ? Visibility.Visible : Visibility.Collapsed;
         DiaryPanel.Visibility = panel == DiaryPanel ? Visibility.Visible : Visibility.Collapsed;
