@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     private readonly NutritionStore _store = new();
     private bool _initializing = true;
     private bool _dark;
+    private int _weightRangeDays = 0;
     public MainWindow()
     {
         InitializeComponent();
@@ -36,11 +37,13 @@ public partial class MainWindow : Window
         if (_initializing || Current is not { } p) return;
         GoalInput.Text = p.Goal.ToString("0", CultureInfo.CurrentCulture);
         WaterText.Text = $"{_store.Water(p.Id,Day)} ml";
+        WaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
         WeightsList.ItemsSource = _store.Weights(p.Id).Select(w => $"{w.Day}  ·  {w.Kg:0.#} kg").ToList();
         var entries = _store.Entries(p.Id, Day);
         var total = entries.Sum(e => e.Calories);
         BudgetPercentText.Text = $"{(p.Goal > 0 ? total / p.Goal * 100 : 0):0}%";
         BudgetProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100,0,100) : 0;
+        DrawBudgetArc(BudgetProgress.Value);
         BudgetRemainingText.Text = $"Απομένουν {p.Goal-total:0} kcal";
         CarbValue.Text = $"{entries.Sum(e=>e.Carbs):0.#} g";
         ProteinValue.Text = $"{entries.Sum(e=>e.Protein):0.#} g";
@@ -189,7 +192,8 @@ public partial class MainWindow : Window
     private void RenderWeightChart(long profileId)
     {
         if (WeightChart == null || LatestWeightText == null) return;
-        var measurements = _store.Weights(profileId).OrderBy(w => w.Day).ToList();
+        var allMeasurements = _store.Weights(profileId).OrderBy(w => w.Day).ToList();
+        var measurements = _weightRangeDays == 0 ? allMeasurements : allMeasurements.Where(w => DateTime.TryParseExact(w.Day,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var d) && d >= Day.AddDays(-_weightRangeDays)).ToList();
         LatestWeightText.Text = measurements.Count == 0 ? "— kg" : $"{measurements[^1].Kg:0.#} kg";
         WeightDeltaText.Text = measurements.Count < 2 ? "Πρόσθεσε μετρήσεις για να δεις την εξέλιξη" :
             $"{measurements[^1].Kg - measurements[0].Kg:+0.#;-0.#;0} kg από την πρώτη μέτρηση";
@@ -213,5 +217,28 @@ public partial class MainWindow : Window
             var dot = new Ellipse { Width=10, Height=10, Fill=new SolidColorBrush(Color.FromRgb(235,250,244)), Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=2 };
             Canvas.SetLeft(dot,point.X-5); Canvas.SetTop(dot,point.Y-5); WeightChart.Children.Add(dot);
         }
+    }
+
+    private void WeightRange_Click(object sender,RoutedEventArgs e)
+    {
+        if (sender is Button b && int.TryParse(b.Tag?.ToString(),out var days))
+        {
+            _weightRangeDays = days;
+            if (Current is { } p) RenderWeightChart(p.Id);
+        }
+    }
+    private void DrawBudgetArc(double percentage)
+    {
+        if (BudgetArc == null) return;
+        var fraction = Math.Clamp(percentage / 100.0,0,0.999999);
+        if (fraction <= 0) { BudgetArc.Data = Geometry.Empty; return; }
+        const double center = 95, radius = 70;
+        double start = -Math.PI/2;
+        double end = start + 2*Math.PI*fraction;
+        var startPoint = new Point(center + radius*Math.Cos(start),center + radius*Math.Sin(start));
+        var endPoint = new Point(center + radius*Math.Cos(end),center + radius*Math.Sin(end));
+        var figure = new PathFigure { StartPoint = startPoint, IsClosed = false };
+        figure.Segments.Add(new ArcSegment { Point=endPoint, Size=new Size(radius,radius), SweepDirection=SweepDirection.Clockwise, IsLargeArc=fraction>0.5 });
+        BudgetArc.Data = new PathGeometry(new[] { figure });
     }
 }
