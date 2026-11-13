@@ -1,0 +1,26 @@
+name: Windows build
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore Nutriora.App/Nutriora.App.csproj
+      - name: Build
+        run: dotnet build Nutriora.App/Nutriora.App.csproj -c Release --no-restore
+      - name: Publish Windows x64
+        run: dotnet publish Nutriora.App/Nutriora.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nutriora-Windows-x64
+          path: publish/
+          retention-days: 7
