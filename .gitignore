@@ -6,3 +6,7 @@ obj/
 *.db-shm
 *.db-wal
 publish/
+
+LatestBuild/
+LatestBuild-Ready/
+LatestInstaller/
