@@ -1,5 +1,10 @@
 name: Nutriora local Windows build
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/windows-build.yml'
+      - 'BUILD_TRIGGER.txt'
   workflow_dispatch:
 concurrency:
   group: nutriora-local-build
@@ -21,67 +26,51 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet build src/Nutriora.App/Nutriora.App.csproj -c Release --no-restore
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Publish to staging and deploy with fallback
+      - name: Publish locally with fallback
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
           $root = 'D:\WindowsProjects\Nutriora'
-          $build = Join-Path $root 'LatestBuild'
-          $ready = Join-Path $root 'LatestBuild-Ready'
+          $primary = Join-Path $root 'LatestBuild'
+          $fallback = Join-Path $root 'LatestBuild-Ready'
           $installer = Join-Path $root 'LatestInstaller'
-          $stage = Join-Path $env:RUNNER_TEMP ('Nutriora-stage-' + $env:GITHUB_RUN_ID)
+          $stage = Join-Path $env:RUNNER_TEMP 'nutriora-publish'
+          if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
           New-Item -ItemType Directory -Path $stage -Force | Out-Null
-          New-Item -ItemType Directory -Path $installer -Force | Out-Null
           dotnet publish src/Nutriora.App/Nutriora.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $stage
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $exe = Join-Path $stage 'Nutriora.exe'
-          if (!(Test-Path $exe)) { throw 'Published Nutriora.exe was not found.' }
-
+          if (!(Test-Path (Join-Path $stage 'Nutriora.exe'))) { throw 'Nutriora.exe missing from publish output.' }
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+          New-Item -ItemType Directory -Path $installer -Force | Out-Null
           function Install-Build([string]$destination) {
-            $parent = Split-Path $destination -Parent
-            $leaf = Split-Path $destination -Leaf
-            New-Item -ItemType Directory -Path $parent -Force | Out-Null
-            $incoming = Join-Path $parent ($leaf + '.incoming-' + $env:GITHUB_RUN_ID)
-            $previous = Join-Path $parent ($leaf + '.previous-' + $env:GITHUB_RUN_ID)
+            $incoming = "$destination.incoming"
+            $backup = "$destination.previous"
             if (Test-Path $incoming) { Remove-Item $incoming -Recurse -Force }
             New-Item -ItemType Directory -Path $incoming -Force | Out-Null
             Copy-Item -Path (Join-Path $stage '*') -Destination $incoming -Recurse -Force
-            if (!(Test-Path (Join-Path $incoming 'Nutriora.exe'))) { throw 'Staged executable missing.' }
-            $movedOld = $false
+            if (!(Test-Path (Join-Path $incoming 'Nutriora.exe'))) { throw 'Incomplete staged build.' }
+            if (Test-Path $backup) { Remove-Item $backup -Recurse -Force }
+            $hadOld = Test-Path $destination
+            if ($hadOld) { Move-Item -Path $destination -Destination $backup -ErrorAction Stop }
             try {
-              if (Test-Path $destination) {
-                Move-Item -LiteralPath $destination -Destination $previous -ErrorAction Stop
-                $movedOld = $true
-              }
-              Move-Item -LiteralPath $incoming -Destination $destination -ErrorAction Stop
-              if ($movedOld) {
-                try { Remove-Item -LiteralPath $previous -Recurse -Force -ErrorAction Stop }
-                catch { Write-Warning "Previous build retained at $previous" }
-              }
-            }
-            catch {
-              if ($movedOld -and !(Test-Path $destination) -and (Test-Path $previous)) {
-                Move-Item -LiteralPath $previous -Destination $destination -ErrorAction Stop
+              Move-Item -Path $incoming -Destination $destination -ErrorAction Stop
+            } catch {
+              if ($hadOld -and (Test-Path $backup) -and !(Test-Path $destination)) {
+                Move-Item -Path $backup -Destination $destination
               }
               throw
             }
-            finally {
-              if (Test-Path $incoming) { Remove-Item -LiteralPath $incoming -Recurse -Force }
+            if (Test-Path $backup) {
+              try { Remove-Item $backup -Recurse -Force } catch { Write-Warning "Backup retained: $backup" }
             }
           }
-
+          $destination = $primary
           try {
-            try {
-              Install-Build $build
-              Write-Host "SUCCESS: Updated primary build: $build"
-            }
-            catch {
-              Write-Warning "Primary folder could not be updated: $($_.Exception.Message)"
-              Install-Build $ready
-              Write-Host "SUCCESS: Updated fallback build: $ready"
-            }
+            Install-Build $primary
+          } catch {
+            Write-Warning "Primary folder unavailable: $($_.Exception.Message)"
+            $destination = $fallback
+            Install-Build $fallback
           }
-          finally {
-            if (Test-Path $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
-          }
-          Write-Host "Installer folder reserved: $installer (installer not implemented yet)"
+          Write-Host "SUCCESS: Nutriora saved to $destination"
+          Write-Host "Installer folder: $installer (installer not implemented)"
