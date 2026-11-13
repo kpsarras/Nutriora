@@ -1,37 +1,41 @@
 name: Nutriora local Windows build
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 concurrency:
   group: nutriora-local-build
   cancel-in-progress: false
-
 jobs:
   build:
     runs-on: [self-hosted, Windows, X64]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Check .NET SDK
-        shell: pwsh
-        run: dotnet --info
-
-      - name: Restore
-        shell: pwsh
-        run: dotnet restore Nutriora.App/Nutriora.App.csproj
-
-      - name: Build
-        shell: pwsh
-        run: dotnet build Nutriora.App/Nutriora.App.csproj -c Release --no-restore
-
-      - name: Publish to local disk
+      - name: Verify local SDK and drive
         shell: pwsh
         run: |
-          $destination = 'D:\NutrioraBuilds\latest'
-          New-Item -ItemType Directory -Force -Path $destination | Out-Null
-          dotnet publish Nutriora.App/Nutriora.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $destination
+          dotnet --info
+          if (!(Test-Path 'D:\')) { throw 'Drive D: is unavailable on this runner.' }
+      - name: Restore and build
+        shell: pwsh
+        run: |
+          dotnet restore src/Nutriora.App/Nutriora.App.csproj
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Write-Host "Local build saved to $destination"
+          dotnet build src/Nutriora.App/Nutriora.App.csproj -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Publish to Family Wallet-style local folders
+        shell: pwsh
+        run: |
+          $root = 'D:\WindowsProjects\Nutriora'
+          $build = Join-Path $root 'LatestBuild'
+          $ready = Join-Path $root 'LatestBuild-Ready'
+          $installer = Join-Path $root 'LatestInstaller'
+          foreach ($dir in @($build, $ready, $installer)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          }
+          dotnet publish src/Nutriora.App/Nutriora.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item -Path (Join-Path $build '*') -Destination $ready -Recurse -Force
+          Write-Host "Local build: $build"
+          Write-Host "Ready copy: $ready"
+          Write-Host "Installer folder reserved: $installer (installer not implemented yet)"
