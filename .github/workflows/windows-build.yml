@@ -1,7 +1,5 @@
 name: Nutriora local Windows build
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 concurrency:
   group: nutriora-local-build
@@ -23,19 +21,67 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet build src/Nutriora.App/Nutriora.App.csproj -c Release --no-restore
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Publish to Family Wallet-style local folders
+      - name: Publish to staging and deploy with fallback
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           $root = 'D:\WindowsProjects\Nutriora'
           $build = Join-Path $root 'LatestBuild'
           $ready = Join-Path $root 'LatestBuild-Ready'
           $installer = Join-Path $root 'LatestInstaller'
-          foreach ($dir in @($build, $ready, $installer)) {
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
-          }
-          dotnet publish src/Nutriora.App/Nutriora.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $build
+          $stage = Join-Path $env:RUNNER_TEMP ('Nutriora-stage-' + $env:GITHUB_RUN_ID)
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          New-Item -ItemType Directory -Path $installer -Force | Out-Null
+          dotnet publish src/Nutriora.App/Nutriora.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o $stage
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item -Path (Join-Path $build '*') -Destination $ready -Recurse -Force
-          Write-Host "Local build: $build"
-          Write-Host "Ready copy: $ready"
+          $exe = Join-Path $stage 'Nutriora.exe'
+          if (!(Test-Path $exe)) { throw 'Published Nutriora.exe was not found.' }
+
+          function Install-Build([string]$destination) {
+            $parent = Split-Path $destination -Parent
+            $leaf = Split-Path $destination -Leaf
+            New-Item -ItemType Directory -Path $parent -Force | Out-Null
+            $incoming = Join-Path $parent ($leaf + '.incoming-' + $env:GITHUB_RUN_ID)
+            $previous = Join-Path $parent ($leaf + '.previous-' + $env:GITHUB_RUN_ID)
+            if (Test-Path $incoming) { Remove-Item $incoming -Recurse -Force }
+            New-Item -ItemType Directory -Path $incoming -Force | Out-Null
+            Copy-Item -Path (Join-Path $stage '*') -Destination $incoming -Recurse -Force
+            if (!(Test-Path (Join-Path $incoming 'Nutriora.exe'))) { throw 'Staged executable missing.' }
+            $movedOld = $false
+            try {
+              if (Test-Path $destination) {
+                Move-Item -LiteralPath $destination -Destination $previous -ErrorAction Stop
+                $movedOld = $true
+              }
+              Move-Item -LiteralPath $incoming -Destination $destination -ErrorAction Stop
+              if ($movedOld) {
+                try { Remove-Item -LiteralPath $previous -Recurse -Force -ErrorAction Stop }
+                catch { Write-Warning "Previous build retained at $previous" }
+              }
+            }
+            catch {
+              if ($movedOld -and !(Test-Path $destination) -and (Test-Path $previous)) {
+                Move-Item -LiteralPath $previous -Destination $destination -ErrorAction Stop
+              }
+              throw
+            }
+            finally {
+              if (Test-Path $incoming) { Remove-Item -LiteralPath $incoming -Recurse -Force }
+            }
+          }
+
+          try {
+            try {
+              Install-Build $build
+              Write-Host "SUCCESS: Updated primary build: $build"
+            }
+            catch {
+              Write-Warning "Primary folder could not be updated: $($_.Exception.Message)"
+              Install-Build $ready
+              Write-Host "SUCCESS: Updated fallback build: $ready"
+            }
+          }
+          finally {
+            if (Test-Path $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
+          }
           Write-Host "Installer folder reserved: $installer (installer not implemented yet)"
