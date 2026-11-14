@@ -205,6 +205,9 @@ public partial class MainWindow : Window
         resources["PanelBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#23382F" : "#FFFFFF"));
         resources["InkBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#E5F2E8" : "#173D35"));
         resources["MutedBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#B6CFC0" : "#60786F"));
+        resources["InputBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#30473D" : "#FFFFFF"));
+        resources["InputBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#5A7567" : "#C8DDD3"));
+        resources["InputTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#F1F8F3" : "#25312D"));
     }
 
     private static string MealDetails(IEnumerable<string> foods)
@@ -278,6 +281,13 @@ public partial class MainWindow : Window
             points.Add(new Point(x,y));
         }
         var guide = new Line { X1=20, X2=width-20, Y1=height-18, Y2=height-18, Stroke=new SolidColorBrush(Color.FromRgb(183,204,194)), StrokeThickness=1, StrokeDashArray=new DoubleCollection { 4,4 } };
+        for (int tick=1;tick<=3;tick++)
+        {
+            double gy = 20 + (height-40)*tick/4.0;
+            WeightChart.Children.Add(new Line { X1=20, X2=width-20, Y1=gy, Y2=gy,
+                Stroke=new SolidColorBrush(Color.FromRgb(208,226,216)), StrokeThickness=1,
+                StrokeDashArray=new DoubleCollection { 3,5 } });
+        }
         WeightChart.Children.Add(guide);
         var maxLabel = new TextBlock { Text=$"{max-1:0.#} kg", FontSize=11, Foreground=new SolidColorBrush(Color.FromRgb(77,116,100)) };
         Canvas.SetLeft(maxLabel,2); Canvas.SetTop(maxLabel,0); WeightChart.Children.Add(maxLabel);
