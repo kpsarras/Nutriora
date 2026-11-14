@@ -256,7 +256,9 @@ public partial class MainWindow : Window
         WeightRangeLabel.Text = _weightRangeDays == 0 ? "Όλες οι διαθέσιμες μετρήσεις" : $"Τελευταίες {_weightRangeDays} ημέρες έως {Day:dd/MM/yyyy}";
         LatestWeightText.Text = measurements.Count == 0 ? "— kg" : $"{measurements[^1].Kg:0.#} kg";
         WeightDeltaText.Text = measurements.Count < 2 ? "Πρόσθεσε μετρήσεις για να δεις την εξέλιξη" :
-            $"{measurements[^1].Kg - measurements[0].Kg:+0.#;-0.#;0} kg από την πρώτη μέτρηση";
+            $"{measurements[^1].Kg - measurements[0].Kg:+0.#;-0.#;0} kg στο επιλεγμένο διάστημα";
+        WeightProgressText.Text = measurements.Count == 0 ? "Δεν υπάρχουν μετρήσεις για αυτή την περίοδο" :
+            measurements.Count == 1 ? "1 καταχώριση" : $"{measurements.Count} μετρήσεις · αρχή {measurements[0].Kg:0.#} kg · τελευταία {measurements[^1].Kg:0.#} kg";
         WeightChart.Children.Clear();
         if (measurements.Count == 0) return;
         double width = Math.Max(300, WeightChart.ActualWidth);
@@ -276,8 +278,20 @@ public partial class MainWindow : Window
         Canvas.SetLeft(maxLabel,2); Canvas.SetTop(maxLabel,0); WeightChart.Children.Add(maxLabel);
         var minLabel = new TextBlock { Text=$"{min+1:0.#} kg", FontSize=11, Foreground=new SolidColorBrush(Color.FromRgb(77,116,100)) };
         Canvas.SetLeft(minLabel,2); Canvas.SetTop(minLabel,height-34); WeightChart.Children.Add(minLabel);
-        var line = new Polyline { Points=points, Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=3, StrokeLineJoin=PenLineJoin.Round };
-        WeightChart.Children.Add(line);
+        var geometry = new PathGeometry();
+        var figure = new PathFigure { StartPoint = points[0], IsClosed = false, IsFilled = false };
+        for (int i=1;i<points.Count;i++)
+        {
+            var a = points[i-1];
+            var b = points[i];
+            double middleX = (a.X+b.X)/2;
+            figure.Segments.Add(new BezierSegment(new Point(middleX,a.Y),new Point(middleX,b.Y),b,true));
+        }
+        geometry.Figures.Add(figure);
+        WeightChart.Children.Add(new System.Windows.Shapes.Path {
+            Data=geometry, Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)),
+            StrokeThickness=3, StrokeStartLineCap=PenLineCap.Round, StrokeEndLineCap=PenLineCap.Round
+        });
         foreach(var point in points)
         {
             var dot = new Ellipse { Width=10, Height=10, Fill=new SolidColorBrush(Color.FromRgb(235,250,244)), Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=2 };
