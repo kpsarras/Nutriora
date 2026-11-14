@@ -44,6 +44,7 @@ public partial class MainWindow : Window
         var total = entries.Sum(e => e.Calories);
         DiaryDailyTotal.Text = $"{total:0} kcal";
         DiaryDailyRemaining.Text = $"Υπόλοιπο: {p.Goal-total:0} kcal";
+        DiaryCalorieProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100, 0, 100) : 0;
         DiaryBreakfast.Text = $"{entries.Where(e=>e.Meal=="Πρωινό").Sum(e=>e.Calories):0} kcal";
         DiaryLunch.Text = $"{entries.Where(e=>e.Meal=="Μεσημεριανό").Sum(e=>e.Calories):0} kcal";
         DiaryDinner.Text = $"{entries.Where(e=>e.Meal=="Βραδινό").Sum(e=>e.Calories):0} kcal";
@@ -69,6 +70,7 @@ public partial class MainWindow : Window
         BreakfastCalories.Text = $"{entries.Where(e=>e.Meal == "Πρωινό").Sum(e=>e.Calories):0} kcal";
         LunchCalories.Text = $"{entries.Where(e=>e.Meal == "Μεσημεριανό").Sum(e=>e.Calories):0} kcal";
         DinnerCalories.Text = $"{entries.Where(e=>e.Meal == "Βραδινό").Sum(e=>e.Calories):0} kcal";
+        SnackCalories.Text = $"{entries.Where(e=>e.Meal == "Δεκατιανό" || e.Meal == "Απογευματινό").Sum(e=>e.Calories):0} kcal";
         RenderWeightChart(p.Id);
         CaloriesText.Text = entries.Count == 0 ? $"Δεν υπάρχουν καταχωρίσεις · στόχος {p.Goal:0} kcal" : $"{total:0} / {p.Goal:0} kcal · υπόλοιπο {p.Goal-total:+0;-0;0}";
         CaloriesProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100, 0, 100) : 0;
@@ -98,6 +100,19 @@ public partial class MainWindow : Window
     private void Diary_Click(object sender, RoutedEventArgs e) => Show(DiaryPanel,"Ημερολόγιο διατροφής");
     private void OpenEntryEditor_Click(object sender, RoutedEventArgs e)
     {
+        EntryEditor.IsExpanded = true;
+        FoodSearch.Focus();
+    }
+    private void MealQuickAdd_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string mealName) return;
+        Show(DiaryPanel,"Ημερολόγιο διατροφής");
+        EntriesList.SelectedItem = null;
+        FoodSearch.Clear();
+        GramsInput.Text = "100";
+        for (int i = 0; i < MealPicker.Items.Count; i++)
+            if (MealPicker.Items[i] is ComboBoxItem item && item.Content?.ToString() == mealName)
+            { MealPicker.SelectedIndex = i; break; }
         EntryEditor.IsExpanded = true;
         FoodSearch.Focus();
     }
