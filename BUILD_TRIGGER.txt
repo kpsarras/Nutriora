@@ -1,2 +1,2 @@
-Nutriora v0.1.0-alpha.5
-Compact responsive dashboard with radial calorie indicator and weight range filtering.
+Nutriora v0.1.0-alpha.6
+Three-column meal diary, real meal and hydration summary, weight view refinements.
