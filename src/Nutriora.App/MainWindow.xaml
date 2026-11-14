@@ -13,12 +13,12 @@
 <StackPanel Margin="26,24">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
-<TextBlock Text="Nutriora · alpha.10" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · alpha.11" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
-<TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="#173D35" Margin="0,0,10,0"/>
+<TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}" Margin="0,0,10,0"/>
 <ComboBox x:Name="ProfilePicker" Width="200" DisplayMemberPath="Name" SelectionChanged="Profile_Changed"/>
-<TextBlock Text="Ημερομηνία:" Margin="22,0,10,0" VerticalAlignment="Center" Foreground="#173D35"/>
+<TextBlock Text="Ημερομηνία:" Margin="22,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
 <DatePicker x:Name="DayPicker" SelectedDateChanged="Day_Changed"/>
 </StackPanel>
 <Grid x:Name="DashboardPanel">
@@ -56,7 +56,7 @@
 <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.1*"/><ColumnDefinition Width="1.35*"/><ColumnDefinition Width="0.85*"/></Grid.ColumnDefinitions>
 <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" CornerRadius="20" Padding="20" Margin="0,0,12,0">
 <StackPanel>
-<Button Content="+ Νέο γεύμα" Background="#2FA98D" Foreground="White" HorizontalAlignment="Left" Click="OpenEntryEditor_Click" Margin="0,0,0,14"/><TextBlock Text="Ημερήσιες καταχωρίσεις" FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,0,0,12"/><TextBlock Text="Διάλεξε καταχώριση για επεξεργασία ή άνοιξε τη φόρμα για νέο γεύμα." FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/><Expander x:Name="EntryEditor" Header="+ Προσθήκη ή επεξεργασία τροφίμου" IsExpanded="False" Margin="0,0,0,12"><StackPanel Margin="0,14,0,8">
+<Button Content="+ Νέο γεύμα" Background="#2FA98D" Foreground="White" HorizontalAlignment="Left" Click="OpenEntryEditor_Click" Margin="0,0,0,14"/><TextBlock Text="Ημερήσιες καταχωρίσεις" FontSize="21" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,0,0,12"/><TextBlock Text="Διάλεξε καταχώριση για επεξεργασία ή πρόσθεσε νέο γεύμα." FontSize="12" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/><Expander x:Name="EntryEditor" Header="+ Προσθήκη ή επεξεργασία τροφίμου" IsExpanded="False" Margin="0,0,0,12"><StackPanel Margin="0,14,0,8">
 <TextBlock Text="Γεύμα" Foreground="{DynamicResource MutedBrush}"/>
 <ComboBox x:Name="MealPicker" Margin="0,5,0,14" SelectedIndex="0"><ComboBoxItem Content="Πρωινό"/><ComboBoxItem Content="Δεκατιανό"/><ComboBoxItem Content="Μεσημεριανό"/><ComboBoxItem Content="Απογευματινό"/><ComboBoxItem Content="Βραδινό"/></ComboBox>
 <TextBlock Text="Αναζήτηση τροφίμου" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="FoodSearch" TextChanged="FoodSearch_Changed" Margin="0,5,0,10"/>
@@ -76,7 +76,7 @@
 <Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="17"><StackPanel><TextBlock Text="🍎" FontSize="36" HorizontalAlignment="Right" Margin="0,0,0,-32"/><TextBlock Text="Ενδιάμεσα γεύματα" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="DiarySnacks" FontSize="21" Foreground="{DynamicResource InkBrush}" Margin="0,8,0,0"/><TextBlock x:Name="DiarySnackFoods" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="0,9,0,0"/></StackPanel></Border>
 </StackPanel>
 <StackPanel Grid.Column="2">
-<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="18" Margin="0,0,0,12"><StackPanel><TextBlock Text="💧  Ενυδάτωση" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="DiaryWater" FontSize="26" FontWeight="SemiBold" Foreground="#2BA78E" Margin="0,14,0,10"/><ProgressBar x:Name="DiaryWaterProgress" Height="9" Minimum="0" Maximum="100"/><TextBlock Text="Στόχος αναφοράς: 2.000 ml" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,9,0,12" TextWrapping="Wrap"/><WrapPanel><Button Content="+250 ml" Click="Water250_Click"/><Button Content="+500 ml" Click="Water500_Click"/></WrapPanel></StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="18" Margin="0,0,0,12"><StackPanel><TextBlock Text="💧  Ενυδάτωση" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="DiaryWater" FontSize="26" FontWeight="SemiBold" Foreground="#2BA78E" Margin="0,14,0,10"/><ProgressBar x:Name="DiaryWaterProgress" Height="9" Minimum="0" Maximum="100"/><TextBlock Text="Ενδεικτικός στόχος: 2.000 ml" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,9,0,12" TextWrapping="Wrap"/><WrapPanel><Button Content="+250 ml" Click="Water250_Click"/><Button Content="+500 ml" Click="Water500_Click"/></WrapPanel></StackPanel></Border>
 <Border Background="#E3F4E9" CornerRadius="18" Padding="18"><StackPanel><TextBlock Text="Ημερήσια σύνοψη" FontSize="18" FontWeight="SemiBold" Foreground="#284739"/><TextBlock x:Name="DiaryMacroSummary" TextWrapping="Wrap" Foreground="#496A5C" Margin="0,12,0,0"/></StackPanel></Border>
 </StackPanel>
 </Grid></StackPanel>
