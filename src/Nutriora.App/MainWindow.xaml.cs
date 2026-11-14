@@ -51,6 +51,11 @@ public partial class MainWindow : Window
         DiaryWaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
         DiaryMacroSummary.Text = $"Πρωτεΐνη: {entries.Sum(e=>e.Protein):0.#} g\nΥδατάνθρακες: {entries.Sum(e=>e.Carbs):0.#} g\nΛίπος: {entries.Sum(e=>e.Fat):0.#} g";
         ActivitySummary.Text = entries.Count == 0 ? "Δεν υπάρχουν γεύματα σήμερα" : $"{entries.Count} καταχωρίσεις  ·  {total:0} kcal";
+        DiaryBreakfastFoods.Text = MealDetails(entries.Where(e => e.Meal == "Πρωινό").Select(e=>e.Food));
+        DiaryLunchFoods.Text = MealDetails(entries.Where(e => e.Meal == "Μεσημεριανό").Select(e=>e.Food));
+        DiaryDinnerFoods.Text = MealDetails(entries.Where(e => e.Meal == "Βραδινό").Select(e=>e.Food));
+        DiarySnackFoods.Text = MealDetails(entries.Where(e => e.Meal == "Δεκατιανό" || e.Meal == "Απογευματινό").Select(e=>e.Food));
+        RenderActivityChart(entries.Select(e=>e.Calories).ToList());
 
         BudgetPercentText.Text = $"{(p.Goal > 0 ? total / p.Goal * 100 : 0):0}%";
         BudgetProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100,0,100) : 0;
@@ -196,6 +201,37 @@ public partial class MainWindow : Window
         resources["MutedBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#B6CFC0" : "#60786F"));
     }
 
+    private static string MealDetails(IEnumerable<string> foods)
+    {
+        var names = foods.Take(3).ToArray();
+        return names.Length == 0 ? "Δεν υπάρχουν καταχωρίσεις" : string.Join(" · ", names);
+    }
+    private void ActivityChart_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (!_initializing && Current is { } p)
+            RenderActivityChart(_store.Entries(p.Id, Day).Select(x=>x.Calories).ToList());
+    }
+    private void RenderActivityChart(IReadOnlyList<double> calories)
+    {
+        if (ActivityChart == null) return;
+        ActivityChart.Children.Clear();
+        double w = Math.Max(140, ActivityChart.ActualWidth), h = Math.Max(45, ActivityChart.ActualHeight);
+        var baseline = new Line { X1=0, X2=w, Y1=h-4, Y2=h-4, Stroke=new SolidColorBrush(Color.FromRgb(89,112,109)), StrokeThickness=1 };
+        ActivityChart.Children.Add(baseline);
+        if (calories.Count == 0) return;
+        double max = Math.Max(1, calories.Max());
+        double barWidth = Math.Max(4, (w-12)/Math.Max(1,calories.Count));
+        for (int i=0;i<calories.Count;i++)
+        {
+            double height = Math.Max(2,(h-12)*calories[i]/max);
+            var bar = new Rectangle { Width=Math.Max(3,barWidth-6), Height=height,
+                Fill=new SolidColorBrush(i%2==0 ? Color.FromRgb(202,233,132) : Color.FromRgb(114,205,192)),
+                RadiusX=3, RadiusY=3 };
+            Canvas.SetLeft(bar,6+i*barWidth);
+            Canvas.SetTop(bar,h-4-height);
+            ActivityChart.Children.Add(bar);
+        }
+    }
     private void WeightChart_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (!_initializing && Current is { } p) RenderWeightChart(p.Id);
@@ -205,6 +241,13 @@ public partial class MainWindow : Window
         if (WeightChart == null || LatestWeightText == null) return;
         var allMeasurements = _store.Weights(profileId).OrderBy(w => w.Day).ToList();
         var measurements = _weightRangeDays == 0 ? allMeasurements : allMeasurements.Where(w => DateTime.TryParseExact(w.Day,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var d) && d >= Day.AddDays(-_weightRangeDays) && d <= Day).ToList();
+        foreach (var button in new[] { Range7, Range30, Range90, Range180, Range365, RangeAll })
+        {
+            bool selected = (button == RangeAll && _weightRangeDays == 0) ||
+                (int.TryParse(button.Tag?.ToString(), out var days) && days == _weightRangeDays);
+            button.Background = new SolidColorBrush(selected ? Color.FromRgb(44,169,141) : Color.FromRgb(218,235,225));
+            button.Foreground = new SolidColorBrush(selected ? Colors.White : Color.FromRgb(34,69,58));
+        }
         WeightRangeLabel.Text = _weightRangeDays == 0 ? "Όλες οι διαθέσιμες μετρήσεις" : $"Τελευταίες {_weightRangeDays} ημέρες έως {Day:dd/MM/yyyy}";
         LatestWeightText.Text = measurements.Count == 0 ? "— kg" : $"{measurements[^1].Kg:0.#} kg";
         WeightDeltaText.Text = measurements.Count < 2 ? "Πρόσθεσε μετρήσεις για να δεις την εξέλιξη" :
@@ -224,12 +267,26 @@ public partial class MainWindow : Window
         }
         var guide = new Line { X1=20, X2=width-20, Y1=height-18, Y2=height-18, Stroke=new SolidColorBrush(Color.FromRgb(183,204,194)), StrokeThickness=1, StrokeDashArray=new DoubleCollection { 4,4 } };
         WeightChart.Children.Add(guide);
+        var maxLabel = new TextBlock { Text=$"{max-1:0.#} kg", FontSize=11, Foreground=new SolidColorBrush(Color.FromRgb(77,116,100)) };
+        Canvas.SetLeft(maxLabel,2); Canvas.SetTop(maxLabel,0); WeightChart.Children.Add(maxLabel);
+        var minLabel = new TextBlock { Text=$"{min+1:0.#} kg", FontSize=11, Foreground=new SolidColorBrush(Color.FromRgb(77,116,100)) };
+        Canvas.SetLeft(minLabel,2); Canvas.SetTop(minLabel,height-34); WeightChart.Children.Add(minLabel);
         var line = new Polyline { Points=points, Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=3, StrokeLineJoin=PenLineJoin.Round };
         WeightChart.Children.Add(line);
         foreach(var point in points)
         {
             var dot = new Ellipse { Width=10, Height=10, Fill=new SolidColorBrush(Color.FromRgb(235,250,244)), Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=2 };
             Canvas.SetLeft(dot,point.X-5); Canvas.SetTop(dot,point.Y-5); WeightChart.Children.Add(dot);
+        }
+        if (measurements.Count > 0)
+        {
+            var first = new TextBlock { Text=measurements[0].Day, FontSize=10, Foreground=new SolidColorBrush(Color.FromRgb(77,116,100)) };
+            Canvas.SetLeft(first,20); Canvas.SetTop(first,height-15); WeightChart.Children.Add(first);
+            if (measurements.Count > 1)
+            {
+                var last = new TextBlock { Text=measurements[^1].Day, FontSize=10, Foreground=new SolidColorBrush(Color.FromRgb(77,116,100)) };
+                Canvas.SetRight(last,15); Canvas.SetTop(last,height-15); WeightChart.Children.Add(last);
+            }
         }
     }
 
