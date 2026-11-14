@@ -2,9 +2,6 @@ name: Nutriora local Windows build
 on:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/windows-build.yml'
-      - 'BUILD_TRIGGER.txt'
   workflow_dispatch:
 concurrency:
   group: nutriora-local-build
