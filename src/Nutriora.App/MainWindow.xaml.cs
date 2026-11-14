@@ -86,6 +86,11 @@ public partial class MainWindow : Window
     }
     private void Dashboard_Click(object sender, RoutedEventArgs e) => Show(DashboardPanel,"Η σημερινή σου εικόνα");
     private void Diary_Click(object sender, RoutedEventArgs e) => Show(DiaryPanel,"Ημερολόγιο διατροφής");
+    private void OpenEntryEditor_Click(object sender, RoutedEventArgs e)
+    {
+        EntryEditor.IsExpanded = true;
+        FoodSearch.Focus();
+    }
     private void Profiles_Click(object sender, RoutedEventArgs e) => Show(ProfilesPanel,"Προφίλ και στόχοι");
     private void Weight_Click(object sender, RoutedEventArgs e) => Show(WeightPanel,"Ιστορικό βάρους");
     private void Profile_Changed(object sender, SelectionChangedEventArgs e) => Refresh();
