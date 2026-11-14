@@ -4,13 +4,16 @@
     <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="InkBrush" Color="#25312D"/>
     <SolidColorBrush x:Key="MutedBrush" Color="#7B8983"/>
+    <SolidColorBrush x:Key="InputBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#C8DDD3"/>
+    <SolidColorBrush x:Key="InputTextBrush" Color="#25312D"/>
     <Style TargetType="TextBox">
       <Setter Property="MinHeight" Value="34"/>
       <Setter Property="Padding" Value="10,7"/>
       <Setter Property="FontSize" Value="14"/>
-      <Setter Property="Background" Value="#FFFFFF"/>
-      <Setter Property="Foreground" Value="#25312D"/>
-      <Setter Property="BorderBrush" Value="#C8DDD3"/>
+      <Setter Property="Background" Value="{DynamicResource InputBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource InputTextBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
@@ -18,17 +21,18 @@
       <Setter Property="MinHeight" Value="34"/>
       <Setter Property="Padding" Value="8,5"/>
       <Setter Property="FontSize" Value="14"/>
-      <Setter Property="Background" Value="#FFFFFF"/>
-      <Setter Property="Foreground" Value="#25312D"/>
-      <Setter Property="BorderBrush" Value="#C8DDD3"/>
+      <Setter Property="Background" Value="{DynamicResource InputBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource InputTextBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
     </Style>
     <Style TargetType="DatePicker">
       <Setter Property="MinHeight" Value="34"/>
       <Setter Property="FontSize" Value="14"/>
-      <Setter Property="BorderBrush" Value="#C8DDD3"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
     </Style>
+    <Style TargetType="ListBox"><Setter Property="Background" Value="{DynamicResource PanelBrush}"/><Setter Property="Foreground" Value="{DynamicResource InkBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="6"/></Style>
     <Style TargetType="Button">
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Padding" Value="14,9"/>
