@@ -7,6 +7,17 @@
     <SolidColorBrush x:Key="InputBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="InputBorderBrush" Color="#C8DDD3"/>
     <SolidColorBrush x:Key="InputTextBrush" Color="#25312D"/>
+    <SolidColorBrush x:Key="HeroBrush" Color="#C5EEDC"/>
+    <SolidColorBrush x:Key="HeroBorderBrush" Color="#A6DCC4"/>
+    <SolidColorBrush x:Key="ActivityBrush" Color="#252F33"/>
+    <SolidColorBrush x:Key="ActivityBorderBrush" Color="#3F5555"/>
+    <SolidColorBrush x:Key="GoalCardBrush" Color="#E2F2E6"/>
+    <SolidColorBrush x:Key="GoalCardBorderBrush" Color="#B8DFC9"/>
+    <SolidColorBrush x:Key="BreakfastBrush" Color="#DDF3F7"/>
+    <SolidColorBrush x:Key="LunchBrush" Color="#E9F8CE"/>
+    <SolidColorBrush x:Key="DinnerBrush" Color="#FFF0DF"/>
+    <SolidColorBrush x:Key="SnackBrush" Color="#F0E9FC"/>
+    <SolidColorBrush x:Key="DiaryHeroBrush" Color="#258F7C"/>
     <Style TargetType="TextBox">
       <Setter Property="MinHeight" Value="34"/>
       <Setter Property="Padding" Value="10,7"/>
