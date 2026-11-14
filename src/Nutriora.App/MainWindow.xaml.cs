@@ -22,6 +22,7 @@ public partial class MainWindow : Window
         RefreshProfiles();
         _initializing = false;
         Refresh();
+        Show(DashboardPanel,"Η σημερινή σου εικόνα");
     }
     private Profile? Current => ProfilePicker.SelectedItem as Profile;
     private DateTime Day => DayPicker.SelectedDate ?? DateTime.Today;
@@ -83,6 +84,15 @@ public partial class MainWindow : Window
         ProfilesPanel.Visibility = panel == ProfilesPanel ? Visibility.Visible : Visibility.Collapsed;
         WeightPanel.Visibility = panel == WeightPanel ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = title;
+        foreach (var nav in new[] { NavDashboard, NavDiary, NavProfiles, NavWeight })
+        {
+            bool active = (nav == NavDashboard && panel == DashboardPanel) ||
+                          (nav == NavDiary && panel == DiaryPanel) ||
+                          (nav == NavProfiles && panel == ProfilesPanel) ||
+                          (nav == NavWeight && panel == WeightPanel);
+            nav.Background = new SolidColorBrush(active ? Color.FromRgb(184,226,196) : Color.FromRgb(55,66,69));
+            nav.Foreground = new SolidColorBrush(active ? Color.FromRgb(26,64,48) : Colors.White);
+        }
     }
     private void Dashboard_Click(object sender, RoutedEventArgs e) => Show(DashboardPanel,"Η σημερινή σου εικόνα");
     private void Diary_Click(object sender, RoutedEventArgs e) => Show(DiaryPanel,"Ημερολόγιο διατροφής");
