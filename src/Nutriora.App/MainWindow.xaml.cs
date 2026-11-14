@@ -41,6 +41,17 @@ public partial class MainWindow : Window
         WeightsList.ItemsSource = _store.Weights(p.Id).Select(w => $"{w.Day}  ·  {w.Kg:0.#} kg").ToList();
         var entries = _store.Entries(p.Id, Day);
         var total = entries.Sum(e => e.Calories);
+        DiaryDailyTotal.Text = $"{total:0} kcal";
+        DiaryDailyRemaining.Text = $"Υπόλοιπο: {p.Goal-total:0} kcal";
+        DiaryBreakfast.Text = $"{entries.Where(e=>e.Meal=="Πρωινό").Sum(e=>e.Calories):0} kcal";
+        DiaryLunch.Text = $"{entries.Where(e=>e.Meal=="Μεσημεριανό").Sum(e=>e.Calories):0} kcal";
+        DiaryDinner.Text = $"{entries.Where(e=>e.Meal=="Βραδινό").Sum(e=>e.Calories):0} kcal";
+        DiarySnacks.Text = $"{entries.Where(e=>e.Meal=="Δεκατιανό" || e.Meal=="Απογευματινό").Sum(e=>e.Calories):0} kcal";
+        DiaryWater.Text = $"{_store.Water(p.Id,Day)} ml";
+        DiaryWaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
+        DiaryMacroSummary.Text = $"Πρωτεΐνη: {entries.Sum(e=>e.Protein):0.#} g\nΥδατάνθρακες: {entries.Sum(e=>e.Carbs):0.#} g\nΛίπος: {entries.Sum(e=>e.Fat):0.#} g";
+        ActivitySummary.Text = entries.Count == 0 ? "Δεν υπάρχουν γεύματα σήμερα" : $"{entries.Count} καταχωρίσεις  ·  {total:0} kcal";
+
         BudgetPercentText.Text = $"{(p.Goal > 0 ? total / p.Goal * 100 : 0):0}%";
         BudgetProgress.Value = p.Goal > 0 ? Math.Clamp(total / p.Goal * 100,0,100) : 0;
         DrawBudgetArc(BudgetProgress.Value);
@@ -193,7 +204,8 @@ public partial class MainWindow : Window
     {
         if (WeightChart == null || LatestWeightText == null) return;
         var allMeasurements = _store.Weights(profileId).OrderBy(w => w.Day).ToList();
-        var measurements = _weightRangeDays == 0 ? allMeasurements : allMeasurements.Where(w => DateTime.TryParseExact(w.Day,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var d) && d >= Day.AddDays(-_weightRangeDays)).ToList();
+        var measurements = _weightRangeDays == 0 ? allMeasurements : allMeasurements.Where(w => DateTime.TryParseExact(w.Day,"yyyy-MM-dd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var d) && d >= Day.AddDays(-_weightRangeDays) && d <= Day).ToList();
+        WeightRangeLabel.Text = _weightRangeDays == 0 ? "Όλες οι διαθέσιμες μετρήσεις" : $"Τελευταίες {_weightRangeDays} ημέρες έως {Day:dd/MM/yyyy}";
         LatestWeightText.Text = measurements.Count == 0 ? "— kg" : $"{measurements[^1].Kg:0.#} kg";
         WeightDeltaText.Text = measurements.Count < 2 ? "Πρόσθεσε μετρήσεις για να δεις την εξέλιξη" :
             $"{measurements[^1].Kg - measurements[0].Kg:+0.#;-0.#;0} kg από την πρώτη μέτρηση";
@@ -210,6 +222,8 @@ public partial class MainWindow : Window
             double y = 20 + (height-40) * (1-(measurements[i].Kg-min)/(max-min));
             points.Add(new Point(x,y));
         }
+        var guide = new Line { X1=20, X2=width-20, Y1=height-18, Y2=height-18, Stroke=new SolidColorBrush(Color.FromRgb(183,204,194)), StrokeThickness=1, StrokeDashArray=new DoubleCollection { 4,4 } };
+        WeightChart.Children.Add(guide);
         var line = new Polyline { Points=points, Stroke=new SolidColorBrush(Color.FromRgb(37,184,132)), StrokeThickness=3, StrokeLineJoin=PenLineJoin.Round };
         WeightChart.Children.Add(line);
         foreach(var point in points)
