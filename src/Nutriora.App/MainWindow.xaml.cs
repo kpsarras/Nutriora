@@ -101,6 +101,37 @@ public partial class MainWindow : Window
         EntryEditor.IsExpanded = true;
         FoodSearch.Focus();
     }
+    private void QuickEntry_Click(object sender, RoutedEventArgs e)
+    {
+        Show(DiaryPanel,"Ημερολόγιο διατροφής");
+        EntriesList.SelectedItem = null;
+        EntryEditor.IsExpanded = true;
+        FoodSearch.Focus();
+    }
+    private void ClearEntry_Click(object sender, RoutedEventArgs e)
+    {
+        EntriesList.SelectedItem = null;
+        FoodSearch.Clear();
+        GramsInput.Text = "100";
+        MealPicker.SelectedIndex = 0;
+        RefreshFoods();
+        FoodSearch.Focus();
+    }
+    private void EntriesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_initializing || Current is not { } p || EntriesList.SelectedItem is not DiaryRow row) return;
+        var entry = _store.Entries(p.Id,Day).FirstOrDefault(x => x.Id == row.Id);
+        if (entry is null) return;
+        EntryEditor.IsExpanded = true;
+        FoodSearch.Text = entry.Food;
+        RefreshFoods();
+        var matchingFood = (FoodPicker.ItemsSource as System.Collections.Generic.IEnumerable<Food>)?.FirstOrDefault(f => f.Name == entry.Food);
+        if (matchingFood != null) FoodPicker.SelectedItem = matchingFood;
+        for (int i=0;i<MealPicker.Items.Count;i++)
+            if (MealPicker.Items[i] is ComboBoxItem item && item.Content?.ToString() == entry.Meal)
+            { MealPicker.SelectedIndex = i; break; }
+        GramsInput.Text = entry.Grams.ToString("0.##",CultureInfo.CurrentCulture);
+    }
     private void Profiles_Click(object sender, RoutedEventArgs e) => Show(ProfilesPanel,"Προφίλ και στόχοι");
     private void Weight_Click(object sender, RoutedEventArgs e) => Show(WeightPanel,"Ιστορικό βάρους");
     private void Profile_Changed(object sender, SelectionChangedEventArgs e) => Refresh();
