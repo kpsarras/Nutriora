@@ -51,6 +51,7 @@ public partial class MainWindow : Window
         DiaryWaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
         DiaryMacroSummary.Text = $"Πρωτεΐνη: {entries.Sum(e=>e.Protein):0.#} g\nΥδατάνθρακες: {entries.Sum(e=>e.Carbs):0.#} g\nΛίπος: {entries.Sum(e=>e.Fat):0.#} g";
         ActivitySummary.Text = entries.Count == 0 ? "Δεν υπάρχουν γεύματα σήμερα" : $"{entries.Count} καταχωρίσεις  ·  {total:0} kcal";
+        GoalInsight.Text = entries.Count == 0 ? "Ξεκίνησε καταχωρίζοντας το πρώτο σου γεύμα." : total > p.Goal ? $"Έχεις υπερβεί τον ημερήσιο στόχο κατά {total-p.Goal:0} kcal." : $"Έχεις καλύψει {(p.Goal>0?total/p.Goal*100:0):0}% του στόχου σου. Απομένουν {p.Goal-total:0} kcal.";
         DiaryBreakfastFoods.Text = MealDetails(entries.Where(e => e.Meal == "Πρωινό").Select(e=>e.Food));
         DiaryLunchFoods.Text = MealDetails(entries.Where(e => e.Meal == "Μεσημεριανό").Select(e=>e.Food));
         DiaryDinnerFoods.Text = MealDetails(entries.Where(e => e.Meal == "Βραδινό").Select(e=>e.Food));
@@ -220,16 +221,20 @@ public partial class MainWindow : Window
         ActivityChart.Children.Add(baseline);
         if (calories.Count == 0) return;
         double max = Math.Max(1, calories.Max());
-        double barWidth = Math.Max(4, (w-12)/Math.Max(1,calories.Count));
-        for (int i=0;i<calories.Count;i++)
+        var points = new PointCollection();
+        for (int i=0; i<calories.Count; i++)
         {
-            double height = Math.Max(2,(h-12)*calories[i]/max);
-            var bar = new Rectangle { Width=Math.Max(3,barWidth-6), Height=height,
-                Fill=new SolidColorBrush(i%2==0 ? Color.FromRgb(202,233,132) : Color.FromRgb(114,205,192)),
-                RadiusX=3, RadiusY=3 };
-            Canvas.SetLeft(bar,6+i*barWidth);
-            Canvas.SetTop(bar,h-4-height);
-            ActivityChart.Children.Add(bar);
+            double x = 10 + (w-20) * (calories.Count == 1 ? 0.5 : (double)i/(calories.Count-1));
+            double y = 5 + (h-15) * (1 - calories[i]/max);
+            points.Add(new Point(x,y));
+        }
+        var line = new Polyline { Points=points, Stroke=new SolidColorBrush(Color.FromRgb(202,233,132)), StrokeThickness=3, StrokeLineJoin=PenLineJoin.Round };
+        ActivityChart.Children.Add(line);
+        foreach (var point in points)
+        {
+            var dot = new Ellipse { Width=7, Height=7, Fill=new SolidColorBrush(Color.FromRgb(114,205,192)) };
+            Canvas.SetLeft(dot,point.X-3.5); Canvas.SetTop(dot,point.Y-3.5);
+            ActivityChart.Children.Add(dot);
         }
     }
     private void WeightChart_SizeChanged(object sender, SizeChangedEventArgs e)
