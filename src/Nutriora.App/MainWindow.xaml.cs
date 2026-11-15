@@ -181,6 +181,7 @@ public partial class MainWindow : Window
                           (nav == NavProfiles && panel == ProfilesPanel) ||
                           (nav == NavWeight && panel == WeightPanel);
             nav.Background = new SolidColorBrush(active ? Color.FromRgb(184,226,196) : Color.FromRgb(55,66,69));
+            nav.FontWeight = active ? FontWeights.Bold : FontWeights.Normal;
             nav.Foreground = new SolidColorBrush(active ? Color.FromRgb(26,64,48) : Colors.White);
         }
     }
@@ -563,6 +564,8 @@ public partial class MainWindow : Window
     private void Theme_Click(object sender,RoutedEventArgs e)
     {
         _dark = !_dark;
+        ThemeButton.Content = _dark ? "☀" : "☾";
+        ThemeButton.ToolTip = _dark ? "Ενεργό: Dark mode · Αλλαγή σε Light" : "Ενεργό: Light mode · Αλλαγή σε Dark";
         var resources = Application.Current.Resources;
         resources["BackgroundBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#15231F" : "#F8F5EE"));
         resources["PanelBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#23382F" : "#FFFFFF"));
