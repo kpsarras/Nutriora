@@ -6,14 +6,14 @@
 <TextBlock Text="✿" FontWeight="Bold" FontSize="32" Foreground="#BFE6A0" HorizontalAlignment="Center" Margin="0,0,0,35"/>
 <Button x:Name="NavDashboard" Content="⌂" FontSize="23" ToolTip="Dashboard" Click="Dashboard_Click"/>
 <Button x:Name="NavDiary" Content="☷" FontSize="23" ToolTip="Ημερολόγιο" Click="Diary_Click" Margin="0,14,0,0"/>
-<Button x:Name="NavProfiles" Content="◉" FontSize="23" ToolTip="Προφίλ και στόχοι" Click="Profiles_Click" Margin="0,14,0,0"/><Button x:Name="NavWeight" Content="⚖" FontSize="23" ToolTip="Βάρος" Click="Weight_Click" Margin="0,14,0,0"/><Button Content="☼" FontSize="23" ToolTip="Εναλλαγή θέματος" Click="Theme_Click" Margin="0,14,0,0"/>
+<Button x:Name="NavFoods" Content="▦" FontSize="23" ToolTip="Βιβλιοθήκη τροφίμων" Click="Foods_Click" Margin="0,14,0,0"/><Button x:Name="NavProfiles" Content="◉" FontSize="23" ToolTip="Προφίλ και στόχοι" Click="Profiles_Click" Margin="0,14,0,0"/><Button x:Name="NavWeight" Content="⚖" FontSize="23" ToolTip="Βάρος" Click="Weight_Click" Margin="0,14,0,0"/><Button Content="☼" FontSize="23" ToolTip="Εναλλαγή θέματος" Click="Theme_Click" Margin="0,14,0,0"/>
 </StackPanel>
 </Border>
 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
 <StackPanel Margin="30,26">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
-<TextBlock Text="Nutriora · alpha.16" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · alpha.17" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
 <TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}" Margin="0,0,10,0"/>
@@ -80,6 +80,31 @@
 <Border Background="#E3F4E9" CornerRadius="18" Padding="18"><StackPanel><TextBlock Text="Ημερήσια σύνοψη" FontSize="18" FontWeight="SemiBold" Foreground="#284739"/><TextBlock x:Name="DiaryMacroSummary" TextWrapping="Wrap" Foreground="#496A5C" Margin="0,12,0,0"/></StackPanel></Border>
 </StackPanel>
 </Grid></StackPanel>
+<StackPanel x:Name="FoodsPanel" Visibility="Collapsed">
+<Border Background="{DynamicResource HeroBrush}" CornerRadius="22" Padding="22" Margin="0,0,0,16">
+<StackPanel><TextBlock Text="Βιβλιοθήκη τροφίμων" FontSize="26" FontWeight="Bold" Foreground="#273F35"/>
+<TextBlock Text="Αναζήτησε τρόφιμα, αποθήκευσε αγαπημένα και πρόσθεσε γρήγορα στο ημερολόγιο." Foreground="#365E4B" Margin="0,8,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+<Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+<Border Grid.Column="0" Background="{DynamicResource PanelBrush}" CornerRadius="20" Padding="20" Margin="0,0,12,0" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+<StackPanel><TextBlock Text="Αναζήτηση τροφίμων" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
+<TextBox x:Name="LibrarySearch" Margin="0,12,0,12" TextChanged="LibrarySearch_Changed" ToolTip="Αναζήτηση με όνομα"/>
+<WrapPanel Margin="0,0,0,12"><Button Content="Όλα" Tag="all" Click="LibraryFilter_Click"/><Button Content="★ Αγαπημένα" Tag="favorites" Click="LibraryFilter_Click"/><Button Content="Πρόσφατα" Tag="recent" Click="LibraryFilter_Click"/></WrapPanel>
+<TextBlock x:Name="LibraryCount" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8"/>
+<ListBox x:Name="LibraryFoods" Height="430" SelectionChanged="LibraryFoods_SelectionChanged" DisplayMemberPath="Name"/>
+</StackPanel></Border>
+<Border Grid.Column="1" Background="{DynamicResource PanelBrush}" CornerRadius="20" Padding="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+<StackPanel><TextBlock Text="Στοιχεία τροφίμου (ανά 100 g)" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" TextWrapping="Wrap"/>
+<TextBlock Text="Όνομα" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,4"/><TextBox x:Name="LibraryName" MaxLength="100"/>
+<TextBlock Text="Θερμίδες (kcal)" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,4"/><TextBox x:Name="LibraryKcal"/>
+<TextBlock Text="Πρωτεΐνη (g)" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,4"/><TextBox x:Name="LibraryProtein"/>
+<TextBlock Text="Υδατάνθρακες (g)" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,4"/><TextBox x:Name="LibraryCarbs"/>
+<TextBlock Text="Λίπος (g)" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,4"/><TextBox x:Name="LibraryFat"/>
+<WrapPanel Margin="0,14,0,0"><Button Content="★ Αγαπημένο" Click="LibraryFavorite_Click"/><Button Content="Νέο" Click="LibraryNew_Click"/><Button Content="Αποθήκευση" Click="LibrarySave_Click" Background="#2FA98D" Foreground="White"/></WrapPanel>
+<TextBlock Text="Προσθήκη στο ημερολόγιο" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,20,0,10"/>
+<ComboBox x:Name="LibraryMeal" SelectedIndex="0" Margin="0,0,0,8"><ComboBoxItem Content="Πρωινό"/><ComboBoxItem Content="Δεκατιανό"/><ComboBoxItem Content="Μεσημεριανό"/><ComboBoxItem Content="Απογευματινό"/><ComboBoxItem Content="Βραδινό"/></ComboBox>
+<TextBox x:Name="LibraryGrams" Text="100" Margin="0,0,0,10" ToolTip="Ποσότητα σε γραμμάρια"/>
+<Button Content="+ Προσθήκη στο ημερολόγιο" Click="LibraryAdd_Click" Background="#2FA98D" Foreground="White" HorizontalAlignment="Left"/>
+</StackPanel></Border></Grid></StackPanel>
 <StackPanel x:Name="ProfilesPanel" Visibility="Collapsed">
 <Border Background="White" CornerRadius="18" Padding="24">
 <StackPanel>
