@@ -221,6 +221,17 @@ public sealed class NutritionStore
         c.Parameters.AddWithValue("$meal",meal);
         return c.ExecuteNonQuery();
     }
+    public void BackupTo(string destination)
+    {
+        using var source = Open();
+        using var target = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = destination,
+            Mode = SqliteOpenMode.ReadWriteCreate
+        }.ToString());
+        target.Open();
+        source.BackupDatabase(target);
+    }
     public List<DailyNutrition> NutritionHistory(long profileId, DateTime start, DateTime end)
     {
         using var db = Open(); using var c = db.CreateCommand();
