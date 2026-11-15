@@ -6,14 +6,14 @@
 <TextBlock Text="✿" FontWeight="Bold" FontSize="32" Foreground="#BFE6A0" HorizontalAlignment="Center" Margin="0,0,0,35"/>
 <Button x:Name="NavDashboard" Content="⌂" FontSize="23" ToolTip="Dashboard" Click="Dashboard_Click"/>
 <Button x:Name="NavDiary" Content="☷" FontSize="23" ToolTip="Ημερολόγιο" Click="Diary_Click" Margin="0,14,0,0"/>
-<Button x:Name="NavFoods" Content="▦" FontSize="23" ToolTip="Βιβλιοθήκη τροφίμων" Click="Foods_Click" Margin="0,14,0,0"/><Button x:Name="NavProfiles" Content="◉" FontSize="23" ToolTip="Προφίλ και στόχοι" Click="Profiles_Click" Margin="0,14,0,0"/><Button x:Name="NavWeight" Content="⚖" FontSize="23" ToolTip="Βάρος" Click="Weight_Click" Margin="0,14,0,0"/><Button Content="☼" FontSize="23" ToolTip="Εναλλαγή θέματος" Click="Theme_Click" Margin="0,14,0,0"/>
+<Button x:Name="NavReports" Content="▥" FontSize="23" ToolTip="Αναφορές και στατιστικά" Click="Reports_Click" Margin="0,14,0,0"/><Button x:Name="NavFoods" Content="▦" FontSize="23" ToolTip="Βιβλιοθήκη τροφίμων" Click="Foods_Click" Margin="0,14,0,0"/><Button x:Name="NavProfiles" Content="◉" FontSize="23" ToolTip="Προφίλ και στόχοι" Click="Profiles_Click" Margin="0,14,0,0"/><Button x:Name="NavWeight" Content="⚖" FontSize="23" ToolTip="Βάρος" Click="Weight_Click" Margin="0,14,0,0"/><Button Content="☼" FontSize="23" ToolTip="Εναλλαγή θέματος" Click="Theme_Click" Margin="0,14,0,0"/>
 </StackPanel>
 </Border>
 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
 <StackPanel Margin="30,26">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
-<TextBlock Text="Nutriora · alpha.19" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · alpha.20" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
 <TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}" Margin="0,0,10,0"/>
@@ -102,6 +102,27 @@
 <TextBlock x:Name="FatGoalStatus" Foreground="#284739" Margin="0,10,0,3"/><ProgressBar x:Name="FatGoalProgress" Height="7" Maximum="100"/></StackPanel></Border>
 </StackPanel>
 </Grid></StackPanel>
+<StackPanel x:Name="ReportsPanel" Visibility="Collapsed">
+<Border Background="{DynamicResource HeroBrush}" CornerRadius="22" Padding="22" Margin="0,0,0,16" BorderBrush="{DynamicResource HeroBorderBrush}" BorderThickness="1">
+<StackPanel><TextBlock Text="📊  Αναφορές διατροφής" FontSize="26" FontWeight="SemiBold" Foreground="#273F35"/><TextBlock Text="Παρακολούθησε την πορεία σου με βάση τις πραγματικές ημερήσιες καταχωρίσεις." Foreground="#365E4B" Margin="0,8,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="18" Margin="0,0,0,14" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+<StackPanel Orientation="Horizontal"><TextBlock Text="Περίοδος:" Foreground="{DynamicResource InkBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+<Button Content="Ημέρα" Tag="day" Click="ReportRange_Click" Margin="0,0,7,0"/>
+<Button Content="7 ημέρες" Tag="week" Click="ReportRange_Click" Margin="0,0,7,0"/>
+<Button Content="30 ημέρες" Tag="month" Click="ReportRange_Click"/>
+<TextBlock x:Name="ReportPeriodLabel" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="18,0,0,0"/></StackPanel></Border>
+<UniformGrid Columns="3" Margin="0,0,0,14">
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="16" Padding="18" Margin="0,0,8,0" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"><StackPanel><TextBlock Text="Μέσες θερμίδες / ημέρα" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="ReportAverageCalories" FontSize="25" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,10,0,0"/></StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="16" Padding="18" Margin="4,0" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"><StackPanel><TextBlock Text="Ημέρες με καταχωρίσεις" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="ReportLoggedDays" FontSize="25" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,10,0,0"/></StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="16" Padding="18" Margin="8,0,0,0" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"><StackPanel><TextBlock Text="Ημέρες εντός στόχου" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="ReportGoalDays" FontSize="25" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,10,0,0"/></StackPanel></Border>
+</UniformGrid>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="20" Padding="20" Margin="0,0,0,14" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+<StackPanel><TextBlock Text="Θερμίδες ανά ημέρα" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="ReportChartHint" Foreground="{DynamicResource MutedBrush}" Margin="0,6,0,14" TextWrapping="Wrap"/>
+<ItemsControl x:Name="ReportBars"><ItemsControl.ItemTemplate><DataTemplate><Grid Margin="0,0,0,7"><Grid.ColumnDefinitions><ColumnDefinition Width="94"/><ColumnDefinition Width="*"/><ColumnDefinition Width="115"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Label}" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" FontSize="12"/><Grid Grid.Column="1" Height="18" Background="{DynamicResource BackgroundBrush}"><Border Background="#51B69A" Width="{Binding Width}" HorizontalAlignment="Left" CornerRadius="4"/></Grid><TextBlock Grid.Column="2" Text="{Binding Value}" Foreground="{DynamicResource InkBrush}" TextAlignment="Right" FontSize="12" VerticalAlignment="Center"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+</StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="20" Padding="20" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1">
+<StackPanel><TextBlock Text="Σύνοψη περιόδου" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="ReportMacroText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/><TextBlock x:Name="ReportWaterText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0"/></StackPanel></Border>
+</StackPanel>
 <StackPanel x:Name="FoodsPanel" Visibility="Collapsed">
 <Border Background="{DynamicResource HeroBrush}" CornerRadius="22" Padding="22" Margin="0,0,0,16">
 <StackPanel><TextBlock Text="Βιβλιοθήκη τροφίμων" FontSize="26" FontWeight="Bold" Foreground="#273F35"/>
