@@ -1,4 +1,7 @@
 using System.Globalization;
+using System.IO;
+using System.Text;
+using Microsoft.Win32;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 using System.Windows;
@@ -60,7 +63,7 @@ public partial class MainWindow : Window
         DiaryDinner.Text = $"{entries.Where(e=>e.Meal=="Βραδινό").Sum(e=>e.Calories):0} kcal";
         DiarySnacks.Text = $"{entries.Where(e=>e.Meal=="Δεκατιανό" || e.Meal=="Απογευματινό").Sum(e=>e.Calories):0} kcal";
         DiaryWater.Text = $"{_store.Water(p.Id,Day)} ml";
-        DiaryWaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
+        DiaryWaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / (double)goals.WaterMl * 100,0,100);
         DiaryMacroSummary.Text = $"Πρωτεΐνη: {entries.Sum(e=>e.Protein):0.#} g\nΥδατάνθρακες: {entries.Sum(e=>e.Carbs):0.#} g\nΛίπος: {entries.Sum(e=>e.Fat):0.#} g";
         double proteinTotal = entries.Sum(e=>e.Protein), carbTotal = entries.Sum(e=>e.Carbs), fatTotal = entries.Sum(e=>e.Fat);
         ProteinGoalStatus.Text = $"Πρωτεΐνη: {proteinTotal:0.#} / {goals.Protein:0.#} g ({proteinTotal/goals.Protein*100:0}%)";
@@ -217,7 +220,7 @@ public partial class MainWindow : Window
         ReportGoalDays.Text = $"{withinGoal} / {logged}";
         ReportPeriodLabel.Text = $"{start:dd/MM/yyyy} – {end:dd/MM/yyyy}";
         ReportChartHint.Text = $"Ημερήσιος στόχος: {p.Goal:0} kcal · Οι ημέρες χωρίς καταχωρίσεις εμφανίζονται με 0.";
-        double max = Math.Max(p.Goal,rows.Max(x=>x.Calories));
+        double max = Math.Max(1,Math.Max(p.Goal,rows.Max(x=>x.Calories)));
         ReportBars.ItemsSource = rows.Select(x=>new ReportBar(
             DateTime.ParseExact(x.Day,"yyyy-MM-dd",CultureInfo.InvariantCulture).ToString("dd/MM"),
             $"{x.Calories:0} kcal",Math.Max(0,x.Calories/max*300))).ToList();
@@ -398,6 +401,49 @@ public partial class MainWindow : Window
     private void Weight_Click(object sender, RoutedEventArgs e) => Show(WeightPanel,"Ιστορικό βάρους");
     private void Profile_Changed(object sender, SelectionChangedEventArgs e) => Refresh();
     private void Day_Changed(object sender, SelectionChangedEventArgs e) => Refresh();
+    private void PreviousDay_Click(object sender,RoutedEventArgs e) => DayPicker.SelectedDate = Day.AddDays(-1);
+    private void NextDay_Click(object sender,RoutedEventArgs e) => DayPicker.SelectedDate = Day.AddDays(1);
+    private void Today_Click(object sender,RoutedEventArgs e) => DayPicker.SelectedDate = DateTime.Today;
+    private void Backup_Click(object sender,RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog { Title="Αντίγραφο ασφαλείας Nutriora", Filter="Βάση SQLite (*.db)|*.db",
+            FileName=$"Nutriora-backup-{DateTime.Now:yyyy-MM-dd-HHmm}.db", OverwritePrompt=true };
+        if (dialog.ShowDialog(this)!=true) return;
+        try
+        {
+            _store.BackupTo(dialog.FileName);
+            MessageBox.Show(this,"Το αντίγραφο ασφαλείας δημιουργήθηκε επιτυχώς.","Nutriora");
+        }
+        catch(Exception ex) { MessageBox.Show(this,$"Αποτυχία αντιγράφου ασφαλείας: {ex.Message}","Nutriora"); }
+    }
+    private void ExportReport_Click(object sender,RoutedEventArgs e)
+    {
+        if (Current is not { } p) return;
+        int days = _reportRange == "day" ? 1 : _reportRange == "month" ? 30 : 7;
+        var end = Day.Date;
+        var start = end.AddDays(1-days);
+        var history = _store.NutritionHistory(p.Id,start,end).ToDictionary(x=>x.Day,x=>x);
+        var dialog = new SaveFileDialog { Title="Εξαγωγή αναφοράς Nutriora",
+            Filter="CSV (*.csv)|*.csv", FileName=$"Nutriora-report-{end:yyyy-MM-dd}.csv", OverwritePrompt=true };
+        if (dialog.ShowDialog(this)!=true) return;
+        try
+        {
+            var csv = new StringBuilder("Ημερομηνία;Θερμίδες (kcal);Πρωτεΐνη (g);Υδατάνθρακες (g);Λιπαρά (g);Νερό (ml);Καταχωρίσεις\r\n");
+            for (int i=0;i<days;i++)
+            {
+                var key = start.AddDays(i).ToString("yyyy-MM-dd",CultureInfo.InvariantCulture);
+                history.TryGetValue(key,out var row);
+                string n(double value) => value.ToString("0.##",CultureInfo.CurrentCulture);
+                csv.Append(key).Append(';').Append(n(row?.Calories ?? 0)).Append(';')
+                    .Append(n(row?.Protein ?? 0)).Append(';').Append(n(row?.Carbs ?? 0)).Append(';')
+                    .Append(n(row?.Fat ?? 0)).Append(';').Append(row?.WaterMl ?? 0).Append(';')
+                    .Append(row?.EntryCount ?? 0).Append("\r\n");
+            }
+            File.WriteAllText(dialog.FileName,csv.ToString(),new UTF8Encoding(true));
+            MessageBox.Show(this,"Η αναφορά CSV αποθηκεύτηκε επιτυχώς.","Nutriora");
+        }
+        catch(Exception ex) { MessageBox.Show(this,$"Αποτυχία εξαγωγής CSV: {ex.Message}","Nutriora"); }
+    }
     private void AddProfile_Click(object sender, RoutedEventArgs e)
     {
         var name = NewProfileName.Text.Trim();
