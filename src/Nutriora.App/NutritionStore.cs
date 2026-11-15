@@ -8,6 +8,7 @@ public sealed record Profile(long Id, string Name, double Goal);
 public sealed record Food(long Id, string Name, double Calories, double Protein, double Carbs, double Fat);
 public sealed record DiaryEntry(long Id, string Meal, string Food, double Grams, double Calories, double Protein, double Carbs, double Fat);
 
+public sealed record NutritionGoals(double Protein, double Carbs, double Fat, int WaterMl);
 public sealed record WeightEntry(string Day, double Kg);
 
 public sealed class NutritionStore
@@ -31,6 +32,7 @@ public sealed class NutritionStore
         using (var migration = db.CreateCommand())
         {
             migration.CommandText = """
+                CREATE TABLE IF NOT EXISTS nutrition_goals (profile_id INTEGER PRIMARY KEY REFERENCES profiles(id), protein REAL NOT NULL, carbs REAL NOT NULL, fat REAL NOT NULL, water_ml INTEGER NOT NULL);
                 CREATE TABLE IF NOT EXISTS food_favorites (
                     profile_id INTEGER NOT NULL REFERENCES profiles(id),
                     food_id INTEGER NOT NULL REFERENCES foods(id),
@@ -75,6 +77,26 @@ public sealed class NutritionStore
         using var db = Open(); using var c = db.CreateCommand();
         c.CommandText = "INSERT INTO profiles(name,goal) VALUES ($n,2000); SELECT last_insert_rowid();";
         c.Parameters.AddWithValue("$n", name); return (long)(c.ExecuteScalar() ?? 0L);
+    }
+    public NutritionGoals Goals(long profileId)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = "SELECT protein,carbs,fat,water_ml FROM nutrition_goals WHERE profile_id=$p";
+        c.Parameters.AddWithValue("$p",profileId);
+        using var reader = c.ExecuteReader();
+        return reader.Read() ? new NutritionGoals(reader.GetDouble(0),reader.GetDouble(1),reader.GetDouble(2),reader.GetInt32(3))
+            : new NutritionGoals(120,250,70,2000);
+    }
+    public void SetNutritionGoals(long profileId, double protein, double carbs, double fat, int waterMl)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = """
+            INSERT INTO nutrition_goals(profile_id,protein,carbs,fat,water_ml) VALUES($p,$pr,$c,$f,$w)
+            ON CONFLICT(profile_id) DO UPDATE SET protein=excluded.protein,carbs=excluded.carbs,fat=excluded.fat,water_ml=excluded.water_ml
+            """;
+        c.Parameters.AddWithValue("$p",profileId); c.Parameters.AddWithValue("$pr",protein);
+        c.Parameters.AddWithValue("$c",carbs); c.Parameters.AddWithValue("$f",fat); c.Parameters.AddWithValue("$w",waterMl);
+        c.ExecuteNonQuery();
     }
     public void SetGoal(long profileId, double goal)
     {
