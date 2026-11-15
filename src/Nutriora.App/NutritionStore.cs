@@ -184,6 +184,20 @@ public sealed class NutritionStore
         c.Parameters.AddWithValue("$to",target.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
         c.ExecuteNonQuery();
     }
+    public int CopyMeal(long profileId, DateTime source, DateTime target, string meal)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = """
+            INSERT INTO entries(profile_id,day,meal,food_id,grams)
+            SELECT profile_id,$to,meal,food_id,grams FROM entries
+            WHERE profile_id=$p AND day=$from AND meal=$meal
+            """;
+        c.Parameters.AddWithValue("$p",profileId);
+        c.Parameters.AddWithValue("$from",source.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        c.Parameters.AddWithValue("$to",target.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        c.Parameters.AddWithValue("$meal",meal);
+        return c.ExecuteNonQuery();
+    }
     public int Water(long profileId,DateTime day)
     {
         using var db = Open(); using var c = db.CreateCommand();
