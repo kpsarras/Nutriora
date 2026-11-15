@@ -13,7 +13,7 @@
 <StackPanel Margin="30,26">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
-<TextBlock Text="Nutriora · alpha.17" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · alpha.18" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
 <TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}" Margin="0,0,10,0"/>
@@ -64,7 +64,26 @@
 <TextBlock Text="Ποσότητα (γραμμάρια)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="GramsInput" Text="100" Margin="0,5,0,14"/>
 <WrapPanel><Button Content="+ Καταχώριση" Click="SaveEntry_Click" Background="#2FA98D" Foreground="White"/><Button Content="Ενημέρωση" Click="UpdateEntry_Click"/><Button Content="Καθαρισμός" Click="ClearEntry_Click"/><Button Content="Αντιγραφή χθεσινών" Click="CopyYesterday_Click"/></WrapPanel>
 </StackPanel></Expander><TextBlock Text="Καταχωρίσεις ημέρας" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,8,0,10"/>
-<ListBox x:Name="EntriesList" SelectionChanged="EntriesList_SelectionChanged" Height="260" FontSize="14" Padding="10" BorderThickness="0" Background="{DynamicResource PanelBrush}" DisplayMemberPath="Food"/>
+<ItemsControl x:Name="MealGroups" Margin="0,0,0,10">
+<ItemsControl.ItemTemplate><DataTemplate>
+<Expander IsExpanded="True" Margin="0,0,0,10">
+<Expander.Header><StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Icon}" FontSize="20" Margin="0,0,8,0"/><TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" Foreground="{DynamicResource InkBrush}"/><TextBlock Text="{Binding Summary}" Foreground="{DynamicResource MutedBrush}" Margin="10,2,0,0" FontSize="12"/></StackPanel></Expander.Header>
+<StackPanel Margin="4,8,0,2">
+<ItemsControl ItemsSource="{Binding Rows}"><ItemsControl.ItemTemplate><DataTemplate>
+<Border Background="{DynamicResource BackgroundBrush}" CornerRadius="10" Padding="9" Margin="0,0,0,5">
+<StackPanel><TextBlock Text="{Binding Name}" Foreground="{DynamicResource InkBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+<TextBlock Text="{Binding Details}" Foreground="{DynamicResource MutedBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,7"/>
+<WrapPanel><Button Content="Επεξεργασία" Tag="{Binding Id}" Click="MealRowEdit_Click" FontSize="11" Padding="8,5"/><Button Content="Διαγραφή" Tag="{Binding Id}" Click="MealRowDelete_Click" FontSize="11" Padding="8,5"/></WrapPanel></StackPanel>
+</Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+<TextBlock Text="Χωρίς καταχωρίσεις" Visibility="{Binding EmptyVisibility}" Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,5,0,10"/>
+<Button Content="+ Προσθήκη στο γεύμα" Tag="{Binding Name}" Click="MealGroupAdd_Click" HorizontalAlignment="Left" FontSize="11" Padding="9,5"/>
+</StackPanel></Expander></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+<TextBlock Text="Αντιγραφή συγκεκριμένου γεύματος" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,8,0,6"/>
+<TextBlock Text="Επίλεξε ημερομηνία προέλευσης και γεύμα. Η αντιγραφή προσθέτει καταχωρίσεις στην επιλεγμένη ημέρα." FontSize="11" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+<DatePicker x:Name="CopyMealSourceDay" Margin="0,0,0,7"/>
+<ComboBox x:Name="CopyMealPicker" SelectedIndex="0" Margin="0,0,0,8"><ComboBoxItem Content="Πρωινό"/><ComboBoxItem Content="Δεκατιανό"/><ComboBoxItem Content="Μεσημεριανό"/><ComboBoxItem Content="Απογευματινό"/><ComboBoxItem Content="Βραδινό"/></ComboBox>
+<Button Content="Αντιγραφή γεύματος" Click="CopySelectedMeal_Click" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+<ListBox x:Name="EntriesList" SelectionChanged="EntriesList_SelectionChanged" Height="90" Visibility="Collapsed" FontSize="14" Padding="10" BorderThickness="0" Background="{DynamicResource PanelBrush}" DisplayMemberPath="Food"/>
 <Button Content="Διαγραφή επιλεγμένης" HorizontalAlignment="Left" Margin="0,10,0,0" Click="DeleteEntry_Click"/>
 <Expander Header="+ Προσωπικό τρόφιμο (ανά 100 g)" Margin="0,22,0,0"><StackPanel Margin="0,12,0,0"><TextBox x:Name="CustomFoodName" Margin="0,0,0,8"/><UniformGrid Columns="4"><TextBox x:Name="CustomKcal" ToolTip="Θερμίδες" Text="0"/><TextBox x:Name="CustomProtein" ToolTip="Πρωτεΐνη" Text="0"/><TextBox x:Name="CustomCarbs" ToolTip="Υδατάνθρακες" Text="0"/><TextBox x:Name="CustomFat" ToolTip="Λίπος" Text="0"/></UniformGrid><TextBlock Text="kcal · πρωτεΐνη · υδατάνθρακες · λίπος" Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,8" TextWrapping="Wrap"/><Button Content="Αποθήκευση τροφίμου" HorizontalAlignment="Left" Click="AddFood_Click"/></StackPanel></Expander>
 </StackPanel></Border>
