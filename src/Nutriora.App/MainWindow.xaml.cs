@@ -14,6 +14,8 @@ public partial class MainWindow : Window
     private bool _initializing = true;
     private bool _dark;
     private int _weightRangeDays = 0;
+    private string _libraryFilter = "all";
+    private bool _libraryNew;
     public MainWindow()
     {
         InitializeComponent();
@@ -85,16 +87,132 @@ public partial class MainWindow : Window
         DiaryPanel.Visibility = panel == DiaryPanel ? Visibility.Visible : Visibility.Collapsed;
         ProfilesPanel.Visibility = panel == ProfilesPanel ? Visibility.Visible : Visibility.Collapsed;
         WeightPanel.Visibility = panel == WeightPanel ? Visibility.Visible : Visibility.Collapsed;
+        FoodsPanel.Visibility = panel == FoodsPanel ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = title;
-        foreach (var nav in new[] { NavDashboard, NavDiary, NavProfiles, NavWeight })
+        foreach (var nav in new[] { NavDashboard, NavDiary, NavFoods, NavProfiles, NavWeight })
         {
             bool active = (nav == NavDashboard && panel == DashboardPanel) ||
                           (nav == NavDiary && panel == DiaryPanel) ||
+                          (nav == NavFoods && panel == FoodsPanel) ||
                           (nav == NavProfiles && panel == ProfilesPanel) ||
                           (nav == NavWeight && panel == WeightPanel);
             nav.Background = new SolidColorBrush(active ? Color.FromRgb(184,226,196) : Color.FromRgb(55,66,69));
             nav.Foreground = new SolidColorBrush(active ? Color.FromRgb(26,64,48) : Colors.White);
         }
+    }
+    private void Foods_Click(object sender, RoutedEventArgs e)
+    {
+        Show(FoodsPanel,"Βιβλιοθήκη τροφίμων");
+        RefreshLibrary();
+    }
+    private void LibrarySearch_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (!_initializing) RefreshLibrary();
+    }
+    private void LibraryFilter_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string filter)
+        {
+            _libraryFilter = filter;
+            RefreshLibrary();
+        }
+    }
+    private void RefreshLibrary()
+    {
+        if (_initializing || LibraryFoods == null) return;
+        long? selected = (LibraryFoods.SelectedItem as Food)?.Id;
+        var foods = _store.Foods();
+        if (Current is { } p)
+        {
+            if (_libraryFilter == "favorites")
+            {
+                var favorites = _store.FavoriteFoodIds(p.Id);
+                foods = foods.Where(f => favorites.Contains(f.Id)).ToList();
+            }
+            else if (_libraryFilter == "recent")
+            {
+                var ids = _store.RecentFoodIds(p.Id);
+                foods = foods.Where(f => ids.Contains(f.Id)).OrderBy(f => ids.IndexOf(f.Id)).ToList();
+            }
+        }
+        var query = LibrarySearch?.Text?.Trim() ?? "";
+        if (query.Length > 0)
+            foods = foods.Where(f => f.Name.Contains(query,StringComparison.CurrentCultureIgnoreCase)).ToList();
+        LibraryFoods.ItemsSource = foods;
+        LibraryCount.Text = $"{foods.Count} τρόφιμα";
+        LibraryFoods.SelectedItem = foods.FirstOrDefault(f => f.Id == selected);
+    }
+    private void LibraryFoods_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LibraryFoods.SelectedItem is not Food food) return;
+        _libraryNew = false;
+        LibraryName.Text = food.Name;
+        LibraryKcal.Text = food.Calories.ToString("0.##",CultureInfo.CurrentCulture);
+        LibraryProtein.Text = food.Protein.ToString("0.##",CultureInfo.CurrentCulture);
+        LibraryCarbs.Text = food.Carbs.ToString("0.##",CultureInfo.CurrentCulture);
+        LibraryFat.Text = food.Fat.ToString("0.##",CultureInfo.CurrentCulture);
+    }
+    private void LibraryNew_Click(object sender, RoutedEventArgs e)
+    {
+        _libraryNew = true;
+        LibraryFoods.SelectedItem = null;
+        LibraryName.Clear();
+        LibraryKcal.Text = "0"; LibraryProtein.Text = "0";
+        LibraryCarbs.Text = "0"; LibraryFat.Text = "0";
+        LibraryName.Focus();
+    }
+    private bool LibraryValues(out double kcal,out double protein,out double carbs,out double fat)
+    {
+        return Nonnegative(LibraryKcal.Text,out kcal) && Nonnegative(LibraryProtein.Text,out protein)
+            && Nonnegative(LibraryCarbs.Text,out carbs) && Nonnegative(LibraryFat.Text,out fat)
+            && kcal <= 900 && protein <= 100 && carbs <= 100 && fat <= 100;
+    }
+    private void LibrarySave_Click(object sender, RoutedEventArgs e)
+    {
+        string name = LibraryName.Text.Trim();
+        if (name.Length < 2 || name.Length > 100 ||
+            !LibraryValues(out double kcal,out double protein,out double carbs,out double fat))
+        {
+            MessageBox.Show("Συμπλήρωσε έγκυρο όνομα και τιμές ανά 100 g."); return;
+        }
+        if (!_libraryNew && LibraryFoods.SelectedItem is not Food)
+        {
+            MessageBox.Show("Επίλεξε τρόφιμο ή πάτησε Νέο."); return;
+        }
+        try
+        {
+            if (!_libraryNew && LibraryFoods.SelectedItem is Food selected)
+                _store.UpdateFood(selected.Id,name,kcal,protein,carbs,fat);
+            else _store.AddFood(name,kcal,protein,carbs,fat);
+        }
+        catch (SqliteException)
+        {
+            MessageBox.Show("Υπάρχει ήδη τρόφιμο με αυτό το όνομα."); return;
+        }
+        _libraryNew = false;
+        RefreshFoods(); RefreshLibrary(); Refresh();
+    }
+    private void LibraryFavorite_Click(object sender, RoutedEventArgs e)
+    {
+        if (Current is not { } p || LibraryFoods.SelectedItem is not Food food) return;
+        bool favorite = _store.FavoriteFoodIds(p.Id).Contains(food.Id);
+        _store.SetFoodFavorite(p.Id,food.Id,!favorite);
+        RefreshLibrary();
+    }
+    private void LibraryAdd_Click(object sender, RoutedEventArgs e)
+    {
+        if (Current is not { } p || LibraryFoods.SelectedItem is not Food food ||
+            LibraryMeal.SelectedItem is not ComboBoxItem meal)
+        {
+            MessageBox.Show("Επίλεξε τρόφιμο και γεύμα."); return;
+        }
+        if (!PositiveNumber(LibraryGrams.Text,out double grams) || grams > 10000)
+        {
+            MessageBox.Show("Συμπλήρωσε έγκυρη ποσότητα."); return;
+        }
+        _store.AddEntry(p.Id,Day,meal.Content.ToString()!,food.Id,grams);
+        Refresh(); RefreshLibrary();
+        MessageBox.Show("Το τρόφιμο προστέθηκε στο ημερολόγιο.");
     }
     private void Dashboard_Click(object sender, RoutedEventArgs e) => Show(DashboardPanel,"Η σημερινή σου εικόνα");
     private void Diary_Click(object sender, RoutedEventArgs e) => Show(DiaryPanel,"Ημερολόγιο διατροφής");
