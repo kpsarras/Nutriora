@@ -40,8 +40,14 @@ public partial class MainWindow : Window
     {
         if (_initializing || Current is not { } p) return;
         GoalInput.Text = p.Goal.ToString("0", CultureInfo.CurrentCulture);
+        var goals = _store.Goals(p.Id);
+        ProteinGoalInput.Text = goals.Protein.ToString("0.#",CultureInfo.CurrentCulture);
+        CarbGoalInput.Text = goals.Carbs.ToString("0.#",CultureInfo.CurrentCulture);
+        FatGoalInput.Text = goals.Fat.ToString("0.#",CultureInfo.CurrentCulture);
+        WaterGoalInput.Text = goals.WaterMl.ToString(CultureInfo.CurrentCulture);
+        DiaryWaterGoalLabel.Text = $"Ημερήσιος στόχος: {goals.WaterMl:N0} ml";
         WaterText.Text = $"{_store.Water(p.Id,Day)} ml";
-        WaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
+        WaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / (double)goals.WaterMl * 100,0,100);
         WeightsList.ItemsSource = _store.Weights(p.Id).Select(w => $"{w.Day}  ·  {w.Kg:0.#} kg").ToList();
         var entries = _store.Entries(p.Id, Day);
         var total = entries.Sum(e => e.Calories);
@@ -55,6 +61,13 @@ public partial class MainWindow : Window
         DiaryWater.Text = $"{_store.Water(p.Id,Day)} ml";
         DiaryWaterProgress.Value = Math.Clamp(_store.Water(p.Id,Day) / 2000.0 * 100,0,100);
         DiaryMacroSummary.Text = $"Πρωτεΐνη: {entries.Sum(e=>e.Protein):0.#} g\nΥδατάνθρακες: {entries.Sum(e=>e.Carbs):0.#} g\nΛίπος: {entries.Sum(e=>e.Fat):0.#} g";
+        double proteinTotal = entries.Sum(e=>e.Protein), carbTotal = entries.Sum(e=>e.Carbs), fatTotal = entries.Sum(e=>e.Fat);
+        ProteinGoalStatus.Text = $"Πρωτεΐνη: {proteinTotal:0.#} / {goals.Protein:0.#} g ({proteinTotal/goals.Protein*100:0}%)";
+        CarbGoalStatus.Text = $"Υδατάνθρακες: {carbTotal:0.#} / {goals.Carbs:0.#} g ({carbTotal/goals.Carbs*100:0}%)";
+        FatGoalStatus.Text = $"Λιπαρά: {fatTotal:0.#} / {goals.Fat:0.#} g ({fatTotal/goals.Fat*100:0}%)";
+        ProteinGoalProgress.Value = Math.Clamp(proteinTotal/goals.Protein*100,0,100);
+        CarbGoalProgress.Value = Math.Clamp(carbTotal/goals.Carbs*100,0,100);
+        FatGoalProgress.Value = Math.Clamp(fatTotal/goals.Fat*100,0,100);
         ActivitySummary.Text = entries.Count == 0 ? "Δεν υπάρχουν γεύματα σήμερα" : $"{entries.Count} καταχωρίσεις  ·  {total:0} kcal";
         GoalInsight.Text = entries.Count == 0 ? "Ξεκίνησε καταχωρίζοντας το πρώτο σου γεύμα." : total > p.Goal ? $"Έχεις υπερβεί τον ημερήσιο στόχο κατά {total-p.Goal:0} kcal." : $"Έχεις καλύψει {(p.Goal>0?total/p.Goal*100:0):0}% του στόχου σου. Απομένουν {p.Goal-total:0} kcal.";
         DiaryBreakfastFoods.Text = MealDetails(entries.Where(e => e.Meal == "Πρωινό").Select(e=>e.Food));
@@ -345,6 +358,20 @@ public partial class MainWindow : Window
         (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out number) ||
          double.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out number))
         && double.IsFinite(number) && number > 0;
+    private void SaveNutritionGoals_Click(object sender, RoutedEventArgs e)
+    {
+        if (Current is not { } p) return;
+        if (!PositiveNumber(ProteinGoalInput.Text,out var protein) || protein > 500 ||
+            !PositiveNumber(CarbGoalInput.Text,out var carbs) || carbs > 1000 ||
+            !PositiveNumber(FatGoalInput.Text,out var fat) || fat > 500 ||
+            !int.TryParse(WaterGoalInput.Text,NumberStyles.Integer,CultureInfo.CurrentCulture,out var water) ||
+            water < 250 || water > 10000)
+        {
+            MessageBox.Show("Συμπλήρωσε θετικούς στόχους: πρωτεΐνη έως 500 g, υδατάνθρακες έως 1000 g, λιπαρά έως 500 g και νερό 250–10000 ml."); return;
+        }
+        _store.SetNutritionGoals(p.Id,protein,carbs,fat,water);
+        Refresh();
+    }
     private void SaveGoal_Click(object sender, RoutedEventArgs e)
     {
         if (Current is not { } p) return;
