@@ -28,6 +28,17 @@ public sealed class NutritionStore
             CREATE TABLE IF NOT EXISTS weights (profile_id INTEGER NOT NULL, day TEXT NOT NULL, kg REAL NOT NULL, PRIMARY KEY(profile_id,day));
             """;
         cmd.ExecuteNonQuery();
+        using (var migration = db.CreateCommand())
+        {
+            migration.CommandText = """
+                CREATE TABLE IF NOT EXISTS food_favorites (
+                    profile_id INTEGER NOT NULL REFERENCES profiles(id),
+                    food_id INTEGER NOT NULL REFERENCES foods(id),
+                    PRIMARY KEY(profile_id,food_id)
+                );
+                """;
+            migration.ExecuteNonQuery();
+        }
         if (Count("profiles") == 0) Execute("INSERT INTO profiles(name,goal) VALUES ('Προφίλ 1',2000)");
         if (Count("foods") == 0)
         {
@@ -77,6 +88,45 @@ public sealed class NutritionStore
         using var r = c.ExecuteReader(); var list = new List<Food>();
         while(r.Read()) list.Add(new(r.GetInt64(0),r.GetString(1),r.GetDouble(2),r.GetDouble(3),r.GetDouble(4),r.GetDouble(5)));
         return list;
+    }
+    public HashSet<long> FavoriteFoodIds(long profileId)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = "SELECT food_id FROM food_favorites WHERE profile_id=$p";
+        c.Parameters.AddWithValue("$p",profileId);
+        using var reader = c.ExecuteReader();
+        var ids = new HashSet<long>();
+        while (reader.Read()) ids.Add(reader.GetInt64(0));
+        return ids;
+    }
+    public void SetFoodFavorite(long profileId, long foodId, bool favorite)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = favorite
+            ? "INSERT OR IGNORE INTO food_favorites(profile_id,food_id) VALUES ($p,$f)"
+            : "DELETE FROM food_favorites WHERE profile_id=$p AND food_id=$f";
+        c.Parameters.AddWithValue("$p",profileId);
+        c.Parameters.AddWithValue("$f",foodId);
+        c.ExecuteNonQuery();
+    }
+    public List<long> RecentFoodIds(long profileId)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = "SELECT food_id FROM entries WHERE profile_id=$p GROUP BY food_id ORDER BY MAX(id) DESC LIMIT 20";
+        c.Parameters.AddWithValue("$p",profileId);
+        using var reader = c.ExecuteReader();
+        var ids = new List<long>();
+        while (reader.Read()) ids.Add(reader.GetInt64(0));
+        return ids;
+    }
+    public void UpdateFood(long foodId, string name, double kcal, double protein, double carbs, double fat)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = "UPDATE foods SET name=$n,kcal=$k,protein=$p,carbs=$c,fat=$f WHERE id=$id";
+        c.Parameters.AddWithValue("$id",foodId); c.Parameters.AddWithValue("$n",name);
+        c.Parameters.AddWithValue("$k",kcal); c.Parameters.AddWithValue("$p",protein);
+        c.Parameters.AddWithValue("$c",carbs); c.Parameters.AddWithValue("$f",fat);
+        c.ExecuteNonQuery();
     }
     public void AddEntry(long profileId, DateTime day, string meal, long foodId, double grams)
     {
