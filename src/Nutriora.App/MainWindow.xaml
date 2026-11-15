@@ -13,7 +13,7 @@
 <StackPanel Margin="30,26">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
-<TextBlock Text="Nutriora · alpha.18" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · alpha.19" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
 <TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}" Margin="0,0,10,0"/>
@@ -95,8 +95,11 @@
 <Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="17"><StackPanel><TextBlock Text="🍎" FontSize="36" HorizontalAlignment="Right" Margin="0,0,0,-32"/><TextBlock Text="Ενδιάμεσα γεύματα" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="DiarySnacks" FontSize="21" Foreground="{DynamicResource InkBrush}" Margin="0,8,0,0"/><TextBlock x:Name="DiarySnackFoods" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource MutedBrush}" Margin="0,9,0,0"/></StackPanel></Border>
 </StackPanel>
 <StackPanel Grid.Column="2">
-<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="18" Margin="0,0,0,12"><StackPanel><TextBlock Text="💧  Ενυδάτωση" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="DiaryWater" FontSize="26" FontWeight="SemiBold" Foreground="#2BA78E" Margin="0,14,0,10"/><ProgressBar x:Name="DiaryWaterProgress" Height="9" Minimum="0" Maximum="100"/><TextBlock Text="Ενδεικτικός στόχος: 2.000 ml" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,9,0,12" TextWrapping="Wrap"/><WrapPanel><Button Content="+250 ml" Click="Water250_Click"/><Button Content="+500 ml" Click="Water500_Click"/></WrapPanel></StackPanel></Border>
-<Border Background="#E3F4E9" CornerRadius="18" Padding="18"><StackPanel><TextBlock Text="Ημερήσια σύνοψη" FontSize="18" FontWeight="SemiBold" Foreground="#284739"/><TextBlock x:Name="DiaryMacroSummary" TextWrapping="Wrap" Foreground="#496A5C" Margin="0,12,0,0"/></StackPanel></Border>
+<Border Background="{DynamicResource PanelBrush}" CornerRadius="18" Padding="18" Margin="0,0,0,12"><StackPanel><TextBlock Text="💧  Ενυδάτωση" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/><TextBlock x:Name="DiaryWater" FontSize="26" FontWeight="SemiBold" Foreground="#2BA78E" Margin="0,14,0,10"/><ProgressBar x:Name="DiaryWaterProgress" Height="9" Minimum="0" Maximum="100"/><TextBlock x:Name="DiaryWaterGoalLabel" Text="Στόχος: 2.000 ml" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,9,0,12" TextWrapping="Wrap"/><WrapPanel><Button Content="+250 ml" Click="Water250_Click"/><Button Content="+500 ml" Click="Water500_Click"/></WrapPanel></StackPanel></Border>
+<Border Background="#E3F4E9" CornerRadius="18" Padding="18"><StackPanel><TextBlock Text="Ημερήσια σύνοψη" FontSize="18" FontWeight="SemiBold" Foreground="#284739"/><TextBlock x:Name="DiaryMacroSummary" TextWrapping="Wrap" Foreground="#496A5C" Margin="0,12,0,10"/>
+<TextBlock x:Name="ProteinGoalStatus" Foreground="#284739" Margin="0,7,0,3"/><ProgressBar x:Name="ProteinGoalProgress" Height="7" Maximum="100"/>
+<TextBlock x:Name="CarbGoalStatus" Foreground="#284739" Margin="0,10,0,3"/><ProgressBar x:Name="CarbGoalProgress" Height="7" Maximum="100"/>
+<TextBlock x:Name="FatGoalStatus" Foreground="#284739" Margin="0,10,0,3"/><ProgressBar x:Name="FatGoalProgress" Height="7" Maximum="100"/></StackPanel></Border>
 </StackPanel>
 </Grid></StackPanel>
 <StackPanel x:Name="FoodsPanel" Visibility="Collapsed">
@@ -133,7 +136,13 @@
 <TextBlock Text="Μετονομασία επιλεγμένου προφίλ" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,22,0,8"/><TextBox x:Name="RenameInput" Margin="0,0,0,8"/><Button Content="Αποθήκευση ονόματος" HorizontalAlignment="Left" Click="Rename_Click"/><TextBlock Text="Ημερήσιος στόχος θερμίδων" FontSize="20" FontWeight="SemiBold" Foreground="#173D35" Margin="0,25,0,8"/>
 <TextBox x:Name="GoalInput" Margin="0,0,0,12"/>
 <Button Content="Αποθήκευση στόχου" HorizontalAlignment="Left" Click="SaveGoal_Click"/>
-<TextBlock Text="Οι θερμιδικοί στόχοι ορίζονται χειροκίνητα στην παρούσα έκδοση." Foreground="#60786F" Margin="0,18,0,0" TextWrapping="Wrap"/>
+<TextBlock Text="Στόχοι μακροθρεπτικών και νερού" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,24,0,12"/>
+<TextBlock Text="Πρωτεΐνη (g / ημέρα)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="ProteinGoalInput" Margin="0,5,0,10"/>
+<TextBlock Text="Υδατάνθρακες (g / ημέρα)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="CarbGoalInput" Margin="0,5,0,10"/>
+<TextBlock Text="Λιπαρά (g / ημέρα)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="FatGoalInput" Margin="0,5,0,10"/>
+<TextBlock Text="Νερό (ml / ημέρα)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="WaterGoalInput" Margin="0,5,0,12"/>
+<Button Content="Αποθήκευση διατροφικών στόχων" HorizontalAlignment="Left" Background="#2FA98D" Foreground="White" Click="SaveNutritionGoals_Click"/>
+<TextBlock Text="Οι στόχοι είναι ενδεικτικές προσωπικές ρυθμίσεις και δεν υπολογίζονται αυτόματα ως ιατρική σύσταση." Foreground="{DynamicResource MutedBrush}" Margin="0,14,0,0" TextWrapping="Wrap"/>
 </StackPanel>
 </Border>
 </StackPanel>
