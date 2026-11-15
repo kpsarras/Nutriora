@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DayPicker.SelectedDate = DateTime.Today;
+        CopyMealSourceDay.SelectedDate = DateTime.Today.AddDays(-1);
         RefreshFoods();
         RefreshProfiles();
         _initializing = false;
@@ -79,6 +80,69 @@ public partial class MainWindow : Window
         MacroText.Text = entries.Count == 0 ? "Μακροθρεπτικά: χωρίς καταγραφή" : $"Πρωτεΐνη {entries.Sum(e=>e.Protein):0.#} g · Υδατάνθρακες {entries.Sum(e=>e.Carbs):0.#} g · Λίπος {entries.Sum(e=>e.Fat):0.#} g";
         SummaryText.Text = entries.Count == 0 ? "Δεν έχουν καταχωριστεί γεύματα." : string.Join(Environment.NewLine, entries.GroupBy(e=>e.Meal).Select(g=>$"{g.Key}: {g.Sum(e=>e.Calories):0} kcal"));
         EntriesList.ItemsSource = entries.Select(e=>new DiaryRow(e.Id,$"{e.Meal} · {e.Food} · {e.Grams:0.#} g · {e.Calories:0.#} kcal")).ToList();
+        RefreshMealGroups(entries);
+    }
+    private sealed record MealRow(long Id, string Name, string Details);
+    private sealed record MealGroup(string Name, string Icon, string Summary, List<MealRow> Rows)
+    {
+        public Visibility EmptyVisibility => Rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+    private static readonly (string Name, string Icon)[] MealDefinitions =
+    {
+        ("Πρωινό","🥣"), ("Δεκατιανό","🍌"), ("Μεσημεριανό","🥗"),
+        ("Απογευματινό","🍎"), ("Βραδινό","🍲")
+    };
+    private void RefreshMealGroups(List<DiaryEntry> entries)
+    {
+        MealGroups.ItemsSource = MealDefinitions.Select(meal =>
+        {
+            var items = entries.Where(e => e.Meal == meal.Name).ToList();
+            return new MealGroup(meal.Name,meal.Icon,
+                $"{items.Sum(e => e.Calories):0} kcal · {items.Count} τρόφιμα",
+                items.Select(e => new MealRow(e.Id,e.Food,
+                    $"{e.Grams:0.#} g · {e.Calories:0.#} kcal · Π {e.Protein:0.#} g · Υ {e.Carbs:0.#} g · Λ {e.Fat:0.#} g")).ToList());
+        }).ToList();
+    }
+    private void MealRowEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: long id }) return;
+        var row = (EntriesList.ItemsSource as IEnumerable<DiaryRow>)?.FirstOrDefault(x => x.Id == id);
+        if (row == null) return;
+        EntriesList.SelectedItem = row;
+        EntryEditor.IsExpanded = true;
+    }
+    private void MealRowDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (Current is not { } p || sender is not Button { Tag: long id }) return;
+        if (MessageBox.Show("Να διαγραφεί το τρόφιμο από το ημερολόγιο;","Nutriora",MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+        _store.DeleteEntry(id,p.Id);
+        Refresh();
+    }
+    private void MealGroupAdd_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string meal }) return;
+        EntriesList.SelectedItem = null;
+        FoodSearch.Clear();
+        GramsInput.Text = "100";
+        for (int i=0;i<MealPicker.Items.Count;i++)
+            if (MealPicker.Items[i] is ComboBoxItem item && item.Content?.ToString() == meal)
+            { MealPicker.SelectedIndex = i; break; }
+        EntryEditor.IsExpanded = true;
+        FoodSearch.Focus();
+    }
+    private void CopySelectedMeal_Click(object sender, RoutedEventArgs e)
+    {
+        if (Current is not { } p || CopyMealSourceDay.SelectedDate is not DateTime source ||
+            CopyMealPicker.SelectedItem is not ComboBoxItem mealItem) return;
+        if (source.Date == Day.Date)
+        {
+            MessageBox.Show("Η ημερομηνία προέλευσης πρέπει να είναι διαφορετική από την επιλεγμένη ημέρα."); return;
+        }
+        var meal = mealItem.Content?.ToString() ?? "";
+        if (MessageBox.Show($"Αντιγραφή «{meal}» από {source:dd/MM/yyyy} στην {Day:dd/MM/yyyy};","Nutriora",MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+        int count = _store.CopyMeal(p.Id,source,Day,meal);
+        Refresh();
+        MessageBox.Show(count == 0 ? "Δεν βρέθηκαν τρόφιμα στο συγκεκριμένο γεύμα." : $"Αντιγράφηκαν {count} καταχωρίσεις.");
     }
     private sealed record DiaryRow(long Id, string Food);
     private void Show(UIElement panel, string title)
