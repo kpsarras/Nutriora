@@ -163,9 +163,11 @@ public partial class MainWindow : Window
     }
     private bool LibraryValues(out double kcal,out double protein,out double carbs,out double fat)
     {
-        return Nonnegative(LibraryKcal.Text,out kcal) && Nonnegative(LibraryProtein.Text,out protein)
-            && Nonnegative(LibraryCarbs.Text,out carbs) && Nonnegative(LibraryFat.Text,out fat)
-            && kcal <= 900 && protein <= 100 && carbs <= 100 && fat <= 100;
+        bool a = Nonnegative(LibraryKcal.Text,out kcal);
+        bool b = Nonnegative(LibraryProtein.Text,out protein);
+        bool c = Nonnegative(LibraryCarbs.Text,out carbs);
+        bool d = Nonnegative(LibraryFat.Text,out fat);
+        return a && b && c && d && kcal <= 900 && protein <= 100 && carbs <= 100 && fat <= 100;
     }
     private void LibrarySave_Click(object sender, RoutedEventArgs e)
     {
