@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private int _weightRangeDays = 0;
     private string _libraryFilter = "all";
     private bool _libraryNew;
+    private string _reportRange = "week";
     public MainWindow()
     {
         InitializeComponent();
@@ -94,6 +95,7 @@ public partial class MainWindow : Window
         SummaryText.Text = entries.Count == 0 ? "Δεν έχουν καταχωριστεί γεύματα." : string.Join(Environment.NewLine, entries.GroupBy(e=>e.Meal).Select(g=>$"{g.Key}: {g.Sum(e=>e.Calories):0} kcal"));
         EntriesList.ItemsSource = entries.Select(e=>new DiaryRow(e.Id,$"{e.Meal} · {e.Food} · {e.Grams:0.#} g · {e.Calories:0.#} kcal")).ToList();
         RefreshMealGroups(entries);
+        if (ReportsPanel.Visibility == Visibility.Visible) RefreshReports();
     }
     private sealed record MealRow(long Id, string Name, string Details);
     private sealed record MealGroup(string Name, string Icon, string Summary, List<MealRow> Rows)
@@ -165,17 +167,65 @@ public partial class MainWindow : Window
         ProfilesPanel.Visibility = panel == ProfilesPanel ? Visibility.Visible : Visibility.Collapsed;
         WeightPanel.Visibility = panel == WeightPanel ? Visibility.Visible : Visibility.Collapsed;
         FoodsPanel.Visibility = panel == FoodsPanel ? Visibility.Visible : Visibility.Collapsed;
+        ReportsPanel.Visibility = panel == ReportsPanel ? Visibility.Visible : Visibility.Collapsed;
         PageTitle.Text = title;
-        foreach (var nav in new[] { NavDashboard, NavDiary, NavFoods, NavProfiles, NavWeight })
+        foreach (var nav in new[] { NavDashboard, NavDiary, NavReports, NavFoods, NavProfiles, NavWeight })
         {
             bool active = (nav == NavDashboard && panel == DashboardPanel) ||
                           (nav == NavDiary && panel == DiaryPanel) ||
                           (nav == NavFoods && panel == FoodsPanel) ||
+                          (nav == NavReports && panel == ReportsPanel) ||
                           (nav == NavProfiles && panel == ProfilesPanel) ||
                           (nav == NavWeight && panel == WeightPanel);
             nav.Background = new SolidColorBrush(active ? Color.FromRgb(184,226,196) : Color.FromRgb(55,66,69));
             nav.Foreground = new SolidColorBrush(active ? Color.FromRgb(26,64,48) : Colors.White);
         }
+    }
+    private sealed record ReportBar(string Label, string Value, double Width);
+    private void Reports_Click(object sender, RoutedEventArgs e)
+    {
+        Show(ReportsPanel,"Αναφορές και στατιστικά");
+        RefreshReports();
+    }
+    private void ReportRange_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string range })
+        {
+            _reportRange = range;
+            RefreshReports();
+        }
+    }
+    private void RefreshReports()
+    {
+        if (_initializing || Current is not { } p) return;
+        var end = Day.Date;
+        int days = _reportRange == "day" ? 1 : _reportRange == "month" ? 30 : 7;
+        var start = end.AddDays(1-days);
+        var history = _store.NutritionHistory(p.Id,start,end);
+        var lookup = history.ToDictionary(x=>x.Day,x=>x);
+        var rows = Enumerable.Range(0,days).Select(i=>
+        {
+            var date = start.AddDays(i);
+            return lookup.TryGetValue(date.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),out var value)
+                ? value : new DailyNutrition(date.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture),0,0,0,0,0,0);
+        }).ToList();
+        int logged = rows.Count(x=>x.EntryCount>0);
+        int withinGoal = rows.Count(x=>x.EntryCount>0 && x.Calories<=p.Goal);
+        var sumCalories = rows.Sum(x=>x.Calories);
+        ReportAverageCalories.Text = $"{sumCalories/days:0} kcal";
+        ReportLoggedDays.Text = $"{logged} / {days}";
+        ReportGoalDays.Text = $"{withinGoal} / {logged}";
+        ReportPeriodLabel.Text = $"{start:dd/MM/yyyy} – {end:dd/MM/yyyy}";
+        ReportChartHint.Text = $"Ημερήσιος στόχος: {p.Goal:0} kcal · Οι ημέρες χωρίς καταχωρίσεις εμφανίζονται με 0.";
+        double max = Math.Max(p.Goal,rows.Max(x=>x.Calories));
+        ReportBars.ItemsSource = rows.Select(x=>new ReportBar(
+            DateTime.ParseExact(x.Day,"yyyy-MM-dd",CultureInfo.InvariantCulture).ToString("dd/MM"),
+            $"{x.Calories:0} kcal",Math.Max(0,x.Calories/max*300))).ToList();
+        var goals = _store.Goals(p.Id);
+        ReportMacroText.Text = $"Μέση ημερήσια πρωτεΐνη: {rows.Sum(x=>x.Protein)/days:0.#} / {goals.Protein:0.#} g\n" +
+            $"Μέσοι ημερήσιοι υδατάνθρακες: {rows.Sum(x=>x.Carbs)/days:0.#} / {goals.Carbs:0.#} g\n" +
+            $"Μέσα ημερήσια λιπαρά: {rows.Sum(x=>x.Fat)/days:0.#} / {goals.Fat:0.#} g";
+        ReportWaterText.Text = $"Μέση ημερήσια πρόσληψη νερού: {rows.Sum(x=>x.WaterMl)/(double)days:0} / {goals.WaterMl} ml · Σύνολο: {rows.Sum(x=>x.WaterMl):N0} ml";
     }
     private void Foods_Click(object sender, RoutedEventArgs e)
     {
