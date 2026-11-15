@@ -13,13 +13,13 @@
 <StackPanel Margin="30,26">
 <DockPanel Margin="0,0,0,20">
 <TextBlock x:Name="PageTitle" Text="Η σημερινή σου εικόνα" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}"/>
-<TextBlock Text="Nutriora · alpha.20" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+<TextBlock Text="Nutriora · v0.2.0" Foreground="#60786F" HorizontalAlignment="Right" VerticalAlignment="Center"/>
 </DockPanel>
 <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
 <TextBlock Text="Προφίλ:" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}" Margin="0,0,10,0"/>
 <ComboBox x:Name="ProfilePicker" Width="200" DisplayMemberPath="Name" SelectionChanged="Profile_Changed"/>
 <TextBlock Text="Ημερομηνία:" Margin="22,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource InkBrush}"/>
-<DatePicker x:Name="DayPicker" SelectedDateChanged="Day_Changed"/>
+<Button Content="‹" ToolTip="Προηγούμενη ημέρα" Click="PreviousDay_Click" Margin="8,0,5,0" MinWidth="32"/><DatePicker x:Name="DayPicker" SelectedDateChanged="Day_Changed"/><Button Content="›" ToolTip="Επόμενη ημέρα" Click="NextDay_Click" Margin="5,0,5,0" MinWidth="32"/><Button Content="Σήμερα" ToolTip="Μετάβαση στη σημερινή ημερομηνία" Click="Today_Click" Margin="0,0,0,0"/>
 </StackPanel>
 <Grid x:Name="DashboardPanel">
 <Grid.ColumnDefinitions><ColumnDefinition Width="1.45*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
@@ -110,7 +110,7 @@
 <Button Content="Ημέρα" Tag="day" Click="ReportRange_Click" Margin="0,0,7,0"/>
 <Button Content="7 ημέρες" Tag="week" Click="ReportRange_Click" Margin="0,0,7,0"/>
 <Button Content="30 ημέρες" Tag="month" Click="ReportRange_Click"/>
-<TextBlock x:Name="ReportPeriodLabel" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="18,0,0,0"/></StackPanel></Border>
+<TextBlock x:Name="ReportPeriodLabel" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="18,0,12,0"/><Button Content="Εξαγωγή CSV" Click="ExportReport_Click" ToolTip="Εξαγωγή της επιλεγμένης περιόδου σε CSV"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,14">
 <Border Background="{DynamicResource PanelBrush}" CornerRadius="16" Padding="18" Margin="0,0,8,0" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"><StackPanel><TextBlock Text="Μέσες θερμίδες / ημέρα" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="ReportAverageCalories" FontSize="25" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,10,0,0"/></StackPanel></Border>
 <Border Background="{DynamicResource PanelBrush}" CornerRadius="16" Padding="18" Margin="4,0" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"><StackPanel><TextBlock Text="Ημέρες με καταχωρίσεις" Foreground="{DynamicResource MutedBrush}"/><TextBlock x:Name="ReportLoggedDays" FontSize="25" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,10,0,0"/></StackPanel></Border>
@@ -163,7 +163,7 @@
 <TextBlock Text="Λιπαρά (g / ημέρα)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="FatGoalInput" Margin="0,5,0,10"/>
 <TextBlock Text="Νερό (ml / ημέρα)" Foreground="{DynamicResource MutedBrush}"/><TextBox x:Name="WaterGoalInput" Margin="0,5,0,12"/>
 <Button Content="Αποθήκευση διατροφικών στόχων" HorizontalAlignment="Left" Background="#2FA98D" Foreground="White" Click="SaveNutritionGoals_Click"/>
-<TextBlock Text="Οι στόχοι είναι ενδεικτικές προσωπικές ρυθμίσεις και δεν υπολογίζονται αυτόματα ως ιατρική σύσταση." Foreground="{DynamicResource MutedBrush}" Margin="0,14,0,0" TextWrapping="Wrap"/>
+<Button Content="Αντίγραφο ασφαλείας δεδομένων (.db)" Click="Backup_Click" HorizontalAlignment="Left" Margin="0,24,0,0" ToolTip="Ασφαλής εξαγωγή της τοπικής βάσης SQLite"/><TextBlock Text="Οι στόχοι είναι ενδεικτικές προσωπικές ρυθμίσεις και δεν υπολογίζονται αυτόματα ως ιατρική σύσταση." Foreground="{DynamicResource MutedBrush}" Margin="0,14,0,0" TextWrapping="Wrap"/>
 </StackPanel>
 </Border>
 </StackPanel>
