@@ -9,6 +9,7 @@ public sealed record Food(long Id, string Name, double Calories, double Protein,
 public sealed record DiaryEntry(long Id, string Meal, string Food, double Grams, double Calories, double Protein, double Carbs, double Fat);
 
 public sealed record NutritionGoals(double Protein, double Carbs, double Fat, int WaterMl);
+public sealed record DailyNutrition(string Day, double Calories, double Protein, double Carbs, double Fat, int EntryCount, int WaterMl);
 public sealed record WeightEntry(string Day, double Kg);
 
 public sealed class NutritionStore
@@ -219,6 +220,49 @@ public sealed class NutritionStore
         c.Parameters.AddWithValue("$to",target.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
         c.Parameters.AddWithValue("$meal",meal);
         return c.ExecuteNonQuery();
+    }
+    public List<DailyNutrition> NutritionHistory(long profileId, DateTime start, DateTime end)
+    {
+        using var db = Open(); using var c = db.CreateCommand();
+        c.CommandText = """
+            SELECT e.day, ROUND(SUM(f.kcal*e.grams/100.0),1),
+                   ROUND(SUM(f.protein*e.grams/100.0),1),
+                   ROUND(SUM(f.carbs*e.grams/100.0),1),
+                   ROUND(SUM(f.fat*e.grams/100.0),1), COUNT(*)
+            FROM entries e JOIN foods f ON f.id=e.food_id
+            WHERE e.profile_id=$p AND e.day BETWEEN $from AND $to
+            GROUP BY e.day ORDER BY e.day
+            """;
+        c.Parameters.AddWithValue("$p",profileId);
+        c.Parameters.AddWithValue("$from",start.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        c.Parameters.AddWithValue("$to",end.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        var totals = new Dictionary<string,DailyNutrition>();
+        using (var reader = c.ExecuteReader())
+        {
+            while(reader.Read())
+            {
+                var day = reader.GetString(0);
+                totals[day] = new DailyNutrition(day,reader.GetDouble(1),reader.GetDouble(2),
+                    reader.GetDouble(3),reader.GetDouble(4),reader.GetInt32(5),0);
+            }
+        }
+        using var water = db.CreateCommand();
+        water.CommandText = "SELECT day,ml FROM water WHERE profile_id=$p AND day BETWEEN $from AND $to";
+        water.Parameters.AddWithValue("$p",profileId);
+        water.Parameters.AddWithValue("$from",start.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        water.Parameters.AddWithValue("$to",end.ToString("yyyy-MM-dd",CultureInfo.InvariantCulture));
+        using (var reader = water.ExecuteReader())
+        {
+            while(reader.Read())
+            {
+                var day = reader.GetString(0);
+                var ml = reader.GetInt32(1);
+                totals[day] = totals.TryGetValue(day,out var current)
+                    ? current with { WaterMl=ml }
+                    : new DailyNutrition(day,0,0,0,0,0,ml);
+            }
+        }
+        return totals.Values.OrderBy(x=>x.Day).ToList();
     }
     public int Water(long profileId,DateTime day)
     {
