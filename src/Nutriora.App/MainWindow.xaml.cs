@@ -567,24 +567,24 @@ public partial class MainWindow : Window
         ThemeButton.Content = _dark ? "☀" : "☾";
         ThemeButton.ToolTip = _dark ? "Ενεργό: Dark mode · Αλλαγή σε Light" : "Ενεργό: Light mode · Αλλαγή σε Dark";
         var resources = Application.Current.Resources;
-        resources["BackgroundBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#15231F" : "#F8F5EE"));
-        resources["PanelBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#23382F" : "#FFFFFF"));
+        resources["BackgroundBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#142624" : "#EFF8F5"));
+        resources["PanelBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#203935" : "#FFFFFF"));
         resources["InkBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#E5F2E8" : "#173D35"));
         resources["MutedBrush"] = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_dark ? "#B6CFC0" : "#60786F"));
         resources["InputBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#30473D" : "#FFFFFF"));
         resources["InputBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#5A7567" : "#C8DDD3"));
         resources["InputTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#F1F8F3" : "#25312D"));
-        resources["HeroBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#B2DFC7" : "#C5EEDC"));
-        resources["HeroBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#75AE92" : "#A6DCC4"));
+        resources["HeroBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#66D9B3" : "#A5F0D0"));
+        resources["HeroBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#36B78D" : "#57CCA2"));
         resources["ActivityBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#202E2C" : "#252F33"));
         resources["ActivityBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#547267" : "#3F5555"));
-        resources["GoalCardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#BFDCC9" : "#E2F2E6"));
-        resources["GoalCardBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#8CB9A2" : "#B8DFC9"));
-        resources["BreakfastBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#C7E6EC" : "#DDF3F7"));
-        resources["LunchBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#D6EBC2" : "#E9F8CE"));
-        resources["DinnerBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#EAD6C5" : "#FFF0DF"));
-        resources["SnackBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#DDD2EB" : "#F0E9FC"));
-        resources["DiaryHeroBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#1D7565" : "#258F7C"));
+        resources["GoalCardBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#5ACF9B" : "#D2F7E4"));
+        resources["GoalCardBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#2EA978" : "#70D6A6"));
+        resources["BreakfastBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#62C9DE" : "#BDEFF7"));
+        resources["LunchBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#A6D85D" : "#DFF5A5"));
+        resources["DinnerBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#F5AD85" : "#FFD5B7"));
+        resources["SnackBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#B99AEF" : "#E5D3FF"));
+        resources["DiaryHeroBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_dark ? "#147C75" : "#16A085"));
     }
 
     private static string MealDetails(IEnumerable<string> foods)
